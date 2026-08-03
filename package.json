@@ -1,0 +1,30 @@
+{
+  "name": "oculopus",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Oculopus â€” the all-seeing trust layer for AI agents on Arc. Turns every agent payment into a verifiable memo receipt, and receipts into on-chain reputation.",
+  "type": "module",
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "test": "tsx --test src/receipt.test.ts src/scorer.test.ts src/x402.test.ts src/agentCard.test.ts src/store.test.ts",
+    "verify:memo": "tsx src/verifyMemo.ts",
+    "node": "tsx src/node.ts",
+    "demo": "tsx src/demo.ts",
+    "rescore": "tsx src/rescore.ts",
+    "register:identity": "tsx src/registerIdentity.ts",
+    "seed": "tsx src/seed.ts"
+  },
+  "license": "MIT",
+  "dependencies": {
+    "better-sqlite3": "^13.0.2",
+    "dotenv": "16.4.5",
+    "viem": "2.55.2"
+  },
+  "devDependencies": {
+    "@types/better-sqlite3": "^9.6.0",
+    "@types/node": "22.9.0",
+    "solc": "0.8.28",
+    "tsx": "4.19.2",
+    "typescript": "5.6.3"
+  }
+}

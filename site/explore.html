@@ -1,0 +1,442 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Explore — Oculopus</title>
+<meta name="description" content="Look up any agent's track record by address or ERC-8004 id, filter by service, rail and role. Only agents with verified, payment-backed receipts are listed.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<meta name="theme-color" content="#0A0D13">
+<link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon-32.png">
+<link rel="apple-touch-icon" href="/assets/favicon-180.png">
+<link rel="stylesheet" href="/assets/oculopus.css">
+<script src="/assets/site.js"></script>
+<style>
+/* explore-only controls — the shared CSS has no form styling and this is the one
+   page that needs it. Kept local rather than widening the design system for a
+   single use. */
+.tools { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin: 4px 0 18px; }
+.tools input, .tools select {
+  font: 13px "JetBrains Mono", monospace; color: var(--text);
+  background: var(--card); border: 1px solid var(--line-strong); border-radius: 0;
+  padding: 9px 12px; outline: none; transition: border-color .2s;
+}
+.tools input:focus, .tools select:focus { border-color: var(--brand); }
+.tools input { flex: 1 1 260px; min-width: 200px; }
+.tools .seg { display: inline-flex; border: 1px solid var(--line-strong); border-radius: 0; overflow: hidden; }
+.tools .seg button {
+  font: 12px "JetBrains Mono", monospace; letter-spacing: .5px; text-transform: uppercase;
+  background: var(--card); color: var(--dim); border: none; padding: 9px 15px; cursor: pointer;
+}
+.tools .seg button.on { background: var(--brand); color: var(--brand-ink); }
+.ex-wrap { height: 100%; display: flex; flex-direction: column; }
+.explore-grid { display: grid; grid-template-columns: 1.45fr 1fr; gap: 22px; align-items: stretch; flex: 1; min-height: 0; }
+.explore-grid > div:first-child { display: flex; flex-direction: column; min-height: 0; }
+@media (max-width: 900px) { .explore-grid { grid-template-columns: 1fr; } }
+.res { flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain; scrollbar-width: none; padding-bottom: 8px; }
+.res::-webkit-scrollbar { display: none; }
+.rrow {
+  display: grid; grid-template-columns: 1fr 50px 46px 60px 40px; gap: 12px; align-items: center;
+  background: rgba(255,255,255,.02); border: 1px solid var(--line); border-radius: 0;
+  padding: 7px 14px; margin-bottom: 5px; cursor: pointer; transition: border-color .2s, transform .15s, background .2s;
+}
+.rrow:hover { border-color: var(--line-2); background: rgba(255,255,255,.045); transform: translateY(-1px); }
+.rrow.sel { border-color: var(--brand); }
+.rrow .rname { font: 12.5px "JetBrains Mono", monospace; color: var(--text); display: flex; align-items: center; gap: 7px; flex-wrap: wrap; }
+.rrow .rsub { font: 10.5px "JetBrains Mono", monospace; color: var(--dim); margin-top: 2px; }
+.rrow .rsc { font: 17px "JetBrains Mono", monospace; font-weight: 700; text-align: right; }
+.rrow .rcount { font: 12px "JetBrains Mono", monospace; color: var(--dim); text-align: right; }
+.rail { cursor: help; }  /* rail chip base is in oculopus.css (shared with profile) */
+/* recent-activity ticker (Arkham-style running strip) */
+.ticker { position: relative; height: 32px; display: flex; align-items: center; overflow: hidden; border: 1px solid var(--line); background: var(--bg-2); margin-bottom: 12px; }
+.ticker::before { content: "ACTIVITY"; position: absolute; left: 0; top: 0; bottom: 0; z-index: 2; display: flex; align-items: center; padding: 0 11px; font: 9px "JetBrains Mono", monospace; letter-spacing: 1.5px; color: var(--accent-2); background: var(--bg-2); border-right: 1px solid var(--line); }
+.ticker-track { display: inline-flex; gap: 26px; white-space: nowrap; padding-left: 92px; animation: tick 48s linear infinite; will-change: transform; }
+.ticker:hover .ticker-track { animation-play-state: paused; }
+@keyframes tick { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+.ev { font: 11px "JetBrains Mono", monospace; color: var(--dim); }
+.ev b { color: var(--text); } .ev .ok { color: var(--good); } .ev .no { color: var(--bad); }
+/* compact + aligned stats row */
+.board-head .frame.sm h2 { font-size: 15px; }
+.board-head .stat-card { padding: 10px 14px; }
+.board-head .stat-card .v { font-size: 20px; }
+.board-head .stat-card .l { font-size: 10.5px; white-space: nowrap; }
+/* detail metrics grid (analyst signals) */
+.mets { display: grid; grid-template-columns: 1fr 1fr; gap: 2px 18px; margin: 12px 0 6px; }
+.met { display: flex; flex-direction: column; gap: 2px; padding: 8px 0; border-bottom: 1px solid var(--line); }
+.met .ml { font: 9px "JetBrains Mono", monospace; letter-spacing: .8px; text-transform: uppercase; color: var(--faint); }
+.met .mv { font: 14px "JetBrains Mono", monospace; color: var(--text); }
+.rhead { display: grid; grid-template-columns: 1fr 50px 46px 60px 40px; gap: 14px; padding: 0 14px 8px;
+  font: 10px "JetBrains Mono", monospace; letter-spacing: 1.4px; text-transform: uppercase; color: var(--dim); }
+.rhead div:nth-child(2), .rhead div:nth-child(3), .rhead div:nth-child(4), .rhead div:nth-child(5) { text-align: right; }
+.rrow .rtrend { font: 11.5px "JetBrains Mono", monospace; text-align: right; }
+.rrow .rvol { font: 11px "JetBrains Mono", monospace; color: var(--dim); text-align: right; }
+.rtrend .up { color: var(--good); } .rtrend .down { color: var(--bad); }
+.detail { min-height: 0; overflow-y: auto; overscroll-behavior: contain; scrollbar-width: none; }
+.detail::-webkit-scrollbar { display: none; }
+.kv { display: flex; justify-content: space-between; gap: 12px; font: 12.5px "JetBrains Mono", monospace; padding: 6px 0; border-bottom: 1px solid var(--line); }
+.kv span:first-child { color: var(--dim); }
+.rc-line { display: grid; grid-template-columns: 1fr auto auto; gap: 10px; align-items: center;
+  font: 11px "JetBrains Mono", monospace; color: var(--dim); padding: 5px 0; border-bottom: 1px solid var(--line); }
+.rc-line a { color: var(--brand); }
+#s-src { font-size: 19px; letter-spacing: -.3px; }
+  .hint{display:inline-flex;align-items:center;justify-content:center;width:15px;height:15px;border-radius:50%;border:1px solid var(--line-2);color:var(--faint);font-size:9px;font-weight:700;cursor:help;margin-left:4px;vertical-align:middle;}
+</style>
+</head>
+<body>
+<canvas id="dots"></canvas>
+<header><div class="wrap"><nav class="nav">
+  <a class="brand" href="/"><img src="/assets/logo-mark.png" alt="">Oculopus <span style="color:var(--faint);font-weight:500;font-size:11px;letter-spacing:2px;font-family:'JetBrains Mono',monospace">APP</span></a>
+  <div class="links">
+    <a class="on" href="/explore">Explore</a><a href="/graph">Graph</a><a href="/api">API</a><a href="/network">Network</a>
+  </div>
+  <div class="right">
+    <a class="btn ghost" href="/">← Site</a>
+  </div>
+</nav></div></header>
+
+<div class="section auto" style="padding:12px 0 0;height:calc(100vh - 64px);overflow:hidden"><div class="wrap ex-wrap">
+  <div class="ticker"><div class="ticker-track" id="ticker"></div></div>
+  <div class="board-head" style="margin-bottom:12px">
+    <div>
+      <div class="frame sm"><h2>Look up an agent's track record</h2></div>
+      <p class="lead small" style="margin-top:6px;max-width:none">Only agents with <b>verified, payment-backed receipts</b> appear — search by address or ERC-8004 id.</p>
+    </div>
+    <div class="grid" style="grid-template-columns:repeat(5,auto);gap:12px">
+      <div class="stat-card"><div class="v" id="s-total">—</div><div class="l">Total agents <span class="hint" data-tip="Registered agents with at least one verified, payment-backed receipt">i</span></div></div>
+      <div class="stat-card"><div class="v" id="s-receipts">—</div><div class="l">Total receipts <span class="hint" data-tip="Co-signed receipts verified against their on-chain payment">i</span></div></div>
+      <div class="stat-card"><div class="v" id="s-onchain">—</div><div class="l">On-chain <span class="hint" data-tip="Receipts settled on-chain, with the receipt hash carried in the payment memo">i</span></div></div>
+      <div class="stat-card"><div class="v" id="s-x402">—</div><div class="l">x402 <span class="hint" data-tip="Receipts settled off-chain via Circle x402, anchored together in a Merkle batch">i</span></div></div>
+      <div class="stat-card"><div class="v" id="s-src" style="color:var(--brand)">Demo</div><div class="l">Source <span class="hint" data-tip="Demo = simulated data; Live = from a connected Arc testnet node">i</span></div></div>
+    </div>
+  </div>
+
+  <div class="tools">
+    <input id="q" type="search" placeholder="address 0x… or agent id" autocomplete="off" spellcheck="false">
+    <div class="seg" id="role">
+      <button data-v="provider" class="on">Providers</button>
+      <button data-v="buyer">Buyers</button>
+    </div>
+    <select id="cat"><option value="">All services</option></select>
+    <select id="rail">
+      <option value="">Any rail</option>
+      <option value="onchain">On-chain</option>
+      <option value="x402">Circle x402</option>
+      <option value="job">Escrowed job</option>
+    </select>
+    <select id="sort">
+      <option value="score">Sort: score</option>
+      <option value="receipts">Sort: receipts</option>
+      <option value="new">Sort: newest</option>
+    </select>
+    <div class="seg" id="tf">
+      <button data-v="1d">1D</button><button data-v="7d" class="on">7D</button><button data-v="30d">30D</button>
+    </div>
+  </div>
+
+  <div class="explore-grid">
+    <div>
+      <div class="rhead"><div>Agent</div><div>Oculopus</div><div>Δ</div><div>Vol</div><div>R</div></div>
+      <div class="res" id="res"></div>
+    </div>
+    <div class="detail" id="detail">
+      <div class="empty">Select an agent to see its score breakdown, rail mix and recent receipts.</div>
+    </div>
+  </div>
+</div></div>
+
+<script>
+const API = window.OC_API || "";
+const short = a => a && a.length > 16 ? a.slice(0, 8) + "…" + a.slice(-4) : (a || "");
+// Everything below reaches innerHTML. Directory/receipt fields come from the node API
+// (overridable via ?api=) and from on-chain agentURIs — both untrusted. Escape at every
+// sink; coerce anything numeric with Number().
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const sa = a => esc(short(a));
+const grade = s => s >= 45 ? "var(--brand)" : s < 30 ? "var(--bad)" : "var(--text)";
+const SCAN = "https://testnet.arcscan.app";
+
+// service categories — the storefront list, mirrored from src/categories.ts. Kept in
+// sync by hand; adding one is additive.
+const CATS = [
+  ["embedding", "Embeddings"], ["llm-inference", "LLM inference"], ["rerank", "Reranking"],
+  ["ocr", "OCR & document parsing"], ["data-scrape", "Web & data retrieval"],
+  ["speech", "Speech to text"], ["image", "Image generation"], ["compute", "General compute"],
+];
+const catSel = document.getElementById("cat");
+CATS.forEach(([slug, label]) => catSel.insertAdjacentHTML("beforeend", `<option value="${slug}">${label}</option>`));
+
+const state = { role: "provider", q: "", cat: "", rail: "", sort: "score", tf: "7d", selected: null };
+let PROVIDERS = [], BUYERS = [];
+
+function railTag(r) {
+  if (!r) return "";
+  const p = [];
+  if (r.job) p.push(`${Number(r.job) || 0} job`); if (r.onchain) p.push(`${Number(r.onchain) || 0} on-chain`); if (r.x402) p.push(`${Number(r.x402) || 0} x402`);
+  return p.length ? `<span style="color:var(--brand)">${p.join(" + ")}</span>` : "No receipts";
+}
+
+// Compact rail chips for the list row — type only; counts on hover (title) and in the
+// click-through detail panel. Declutters the old "2 job + 8 on-chain + 4 x402" string.
+function railChips(r, withCount) {
+  if (!r) return "";
+  const p = [];
+  const mk = (cls, k, lbl) => { const v = Number(r[k]); if (!v) return; p.push(withCount ? `<span class="grp"><span class="railn">${v}</span><span class="rail ${cls}">${lbl}</span></span>` : `<span class="rail ${cls}" title="${v} ${lbl} receipts">${lbl}</span>`); };
+  mk("j", "job", "job"); mk("o", "onchain", "on-chain"); mk("x", "x402", "x402");
+  return p.length ? `<span class="rails">${p.join("")}</span>` : `<span class="dim">no receipts</span>`;
+}
+
+function pool() { return state.role === "provider" ? PROVIDERS : BUYERS; }
+
+function filtered() {
+  let list = pool().slice();
+  if (state.q) {
+    const q = state.q.trim().toLowerCase();
+    list = list.filter(a =>
+      a.address.toLowerCase().includes(q) ||
+      (a.agentId != null && String(a.agentId) === q) ||
+      (a.name && a.name.toLowerCase().includes(q)));
+  }
+  if (state.role === "provider") {
+    if (state.cat) list = list.filter(a => a.category === state.cat);
+    if (state.rail) list = list.filter(a => (a.rails && a.rails[state.rail]) > 0);
+  }
+  const key = state.sort;
+  list.sort((x, y) => key === "receipts" ? y.receipts - x.receipts
+    : key === "new" ? (y.registeredAt || 0) - (x.registeredAt || 0)
+    : y.score - x.score);
+  return list;
+}
+
+// demo trend Δ over the selected window (1D/7D/30D). Real trend ships with the Analytics API.
+function trendVal(a) {
+  const seed = [...(a.address || "x")].reduce((s, c) => s + c.charCodeAt(0), 0);
+  const mult = state.tf === "1d" ? 0.3 : state.tf === "7d" ? 1 : 2.4;
+  return +(((seed % 13) - 6) * 0.45 * mult).toFixed(1);
+}
+function trendCell(a) {
+  const t = a.receipts ? trendVal(a) : 0;
+  return t > 0 ? `<span class="up">▲${t.toFixed(1)}</span>` : t < 0 ? `<span class="down">▼${Math.abs(t).toFixed(1)}</span>` : `<span class="dim">—</span>`;
+}
+// demo volume over the selected window (1D/7D/30D) — real volume ships with the Analytics API
+function volFor(a) {
+  const seed = [...(a.address || "x")].reduce((s, c) => s + c.charCodeAt(0), 0);
+  const mult = state.tf === "1d" ? 0.18 : state.tf === "7d" ? 1 : 3.6;
+  return (a.receipts || 0) * (0.06 + (seed % 40) / 100) * mult;
+}
+function volCell(a) {
+  if (!a.receipts) return `<span class="dim">—</span>`;
+  const v = volFor(a);
+  return v >= 1000 ? "$" + (v / 1000).toFixed(1) + "k" : "$" + v.toFixed(2);
+}
+
+function renderList() {
+  const list = filtered();
+  const res = document.getElementById("res");
+  if (!list.length) {
+    res.innerHTML = `<div class="empty">No agent with a verified track record matches this. Oculopus lists a wallet only after it has a payment-backed receipt.</div>`;
+  } else {
+    res.innerHTML = list.map(a => {
+      const badge = state.role === "provider"
+        ? `<span class="badge" title="${a.agentId ? "ERC-8004 agentId " + esc(a.agentId) : "Not in the ERC-8004 IdentityRegistry"}">◈ ${a.agentId ? "#" + esc(a.agentId) : "unregistered"}</span>`
+        : `<span class="badge" title="Discovered from receipts, never registered">◈ buyer</span>`;
+      const sub = state.role === "provider"
+        ? `${sa(a.address)} · ${esc(a.categoryLabel || "Uncategorised")} · ${railChips(a.rails)}`
+        : `${sa(a.address)} · ${esc(a.uniqueCounterparties)} providers paid`;
+      return `<div class="rrow ${state.selected === a.address ? "sel" : ""}" data-addr="${esc(a.address)}">
+        <div><div class="rname">${esc(a.name) || sa(a.address)}${badge}</div><div class="rsub">${sub}</div></div>
+        <div class="rsc" style="color:${grade(a.score)}">${Number(a.score).toFixed(1)}</div>
+        <div class="rtrend">${trendCell(a)}</div>
+        <div class="rvol">${volCell(a)}</div>
+        <div class="rcount">${esc(a.receipts)}</div>
+      </div>`;
+    }).join("");
+  }
+  // network-wide totals are set once by renderStats(), not per filter
+}
+
+function detailHtml(a, receipts, asBuyer) {
+  const rows = (receipts || []).slice(0, 8).map(r => {
+    const cls = r.outcome === "success" ? "ok-txt" : "bad-txt";
+    const link = r.tx ? `<a href="${SCAN}/tx/${esc(r.tx)}" target="_blank" rel="noopener">tx ↗</a>` : `<span class="dim">—</span>`;
+    return `<div class="rc-line"><span>${sa(r.buyer)}</span><span class="${cls}">${esc(r.outcome)} · ${esc(r.usdc)} USDC</span>${link}</div>`;
+  }).join("");
+  const rs = receipts || [];
+  const succ = rs.filter(r => r.outcome === "success").length;
+  const successRate = rs.length ? Math.round(succ / rs.length * 100) : null;
+  const volume = rs.reduce((s, r) => s + (parseFloat(r.usdc) || 0), 0);
+  const lats = rs.filter(r => r.latencyMs).map(r => r.latencyMs);
+  const avgLat = lats.length ? Math.round(lats.reduce((x, y) => x + y, 0) / lats.length) : null;
+  const dispRate = rs.length ? Math.round(rs.filter(r => r.disputed).length / rs.length * 100) : null;
+  const last = rs.reduce((m, r) => Math.max(m, r.deliveredAt || 0), 0);
+  const agoDays = last ? Math.max(0, Math.round((Date.now() - last) / 86400e3)) : null;
+  const fmtUsd = v => v >= 1000 ? "$" + (v / 1000).toFixed(1) + "k" : "$" + v.toFixed(2);
+  const fmtLat = ms => ms == null ? "—" : ms >= 1000 ? (ms / 1000).toFixed(1) + "s" : ms + "ms";
+  const fmtAgo = d => d == null ? "—" : d === 0 ? "Today" : d + "d ago";
+  const isProv = state.role === "provider";
+  return `
+    <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:12px">
+      <div class="frame sm" style="margin:0"><h2 style="font-size:17px">${esc(a.name) || sa(a.address)}</h2></div>
+      <a class="btn ghost" style="--cham:7px;font-size:12px" href="/agent?addr=${esc(a.address)}">Full profile →</a>
+    </div>
+    <div style="display:flex;align-items:baseline;gap:12px;margin-bottom:10px">
+      <div class="score-num" style="color:${grade(a.score)}">${Number(a.score).toFixed(1)}</div>
+      <div class="dim small">${isProv ? "Provider score" : "Buyer score"} · ${esc(a.receipts)} receipts</div>
+    </div>
+    <div class="mets">
+      <div class="met"><span class="ml">Success rate</span><span class="mv" style="color:${successRate != null && successRate >= 80 ? "var(--good)" : successRate != null && successRate < 50 ? "var(--bad)" : "var(--text)"}">${successRate == null ? "—" : successRate + "%"}</span></div>
+      <div class="met"><span class="ml">Volume settled</span><span class="mv">${fmtUsd(volume)}</span></div>
+      <div class="met"><span class="ml">Avg response</span><span class="mv">${fmtLat(avgLat)}</span></div>
+      <div class="met"><span class="ml">Last active</span><span class="mv">${fmtAgo(agoDays)}</span></div>
+      <div class="met"><span class="ml">Dispute rate</span><span class="mv" style="color:${dispRate ? "var(--bad)" : "var(--text)"}">${dispRate == null ? "—" : dispRate + "%"}</span></div>
+      <div class="met"><span class="ml">Distinct buyers</span><span class="mv">${esc(a.uniqueCounterparties ?? "—")}</span></div>
+    </div>
+    <div style="margin-bottom:14px">
+      <div class="kv"><span>Address</span><a href="${SCAN}/address/${esc(a.address)}" target="_blank" rel="noopener">${sa(a.address)} ↗</a></div>
+      ${isProv && a.agentId ? `<div class="kv"><span>ERC-8004 id</span><span>#${esc(a.agentId)}</span></div>` : ""}
+      ${isProv ? `<div class="kv"><span>Service</span><span>${esc(a.categoryLabel || "Uncategorised")}</span></div>` : ""}
+      <div class="kv"><span>Positive / negative</span><span><span class="ok-txt">${Number(a.pos).toFixed(1)}</span> / <span class="bad-txt">${Number(a.neg).toFixed(1)}</span></span></div>
+      ${isProv ? `<div class="kv"><span>Evidence rails</span><span>${railChips(a.rails, true)}</span></div>` : ""}
+      ${isProv && a.erc8004 && a.erc8004.rawScore != null ? `<div class="kv"><span>ERC-8004 raw avg</span><span class="dim">${Number(a.erc8004.rawScore).toFixed(1)}</span></div>` : ""}
+      ${isProv && asBuyer ? `<div class="kv"><span>Also a buyer</span><span>${Number(asBuyer.score).toFixed(1)} · ${esc(asBuyer.receipts)} receipts</span></div>` : ""}
+    </div>
+    ${isProv ? `<div class="dim small" style="text-transform:uppercase;letter-spacing:1.4px;font-size:10px;margin-bottom:6px">Recent receipts</div>
+      ${rows || `<div class="dim small">No receipts held by this node yet.</div>`}` :
+      `<div class="dim small">Buyers are discovered from receipts they paid for, never registered. The score above is what providers should read before accepting this buyer's work.</div>`}`;
+}
+
+async function select(addr) {
+  state.selected = addr;
+  renderList();
+  const a = pool().find(x => x.address === addr);
+  if (!a) return;
+  const det = document.getElementById("detail");
+  if (API) {
+    try {
+      const r = await fetch(API + "/agents/" + addr);
+      if (r.ok) { const d = await r.json(); det.innerHTML = detailHtml(a, d.recentReceipts, d.asBuyer); return; }
+    } catch (e) {}
+  }
+  det.innerHTML = detailHtml(a, a._receipts, a._asBuyer);
+}
+
+// ---- wiring ----
+document.getElementById("q").addEventListener("input", e => { state.q = e.target.value; renderList(); });
+document.getElementById("cat").addEventListener("change", e => { state.cat = e.target.value; renderList(); });
+document.getElementById("rail").addEventListener("change", e => { state.rail = e.target.value; renderList(); });
+document.getElementById("sort").addEventListener("change", e => { state.sort = e.target.value; renderList(); });
+document.getElementById("tf").addEventListener("click", e => { const b = e.target.closest("button"); if (!b) return; document.querySelectorAll("#tf button").forEach(x => x.classList.toggle("on", x === b)); state.tf = b.dataset.v; renderList(); });
+document.getElementById("role").addEventListener("click", e => {
+  const b = e.target.closest("button"); if (!b) return;
+  document.querySelectorAll("#role button").forEach(x => x.classList.toggle("on", x === b));
+  state.role = b.dataset.v; state.selected = null;
+  document.getElementById("cat").disabled = document.getElementById("rail").disabled = state.role === "buyer";
+  document.getElementById("detail").innerHTML = `<div class="empty">Select ${state.role === "provider" ? "an agent" : "a buyer"} to see its score breakdown${state.role === "provider" ? ", rail mix and recent receipts" : ""}.</div>`;
+  renderList();
+});
+document.getElementById("res").addEventListener("click", e => {
+  const row = e.target.closest(".rrow"); if (row) select(row.dataset.addr);
+});
+
+// ---- demo data (Vercel, no node) ----
+function demoSeed() {
+  const p = (address, agentId, name, category, categoryLabel, score, receipts, pos, neg, uniq, rails, raw, days) => ({
+    address, agentId, name, category, categoryLabel, score, receipts, pos, neg,
+    uniqueCounterparties: uniq, rails, erc8004: { rawScore: raw },
+    registeredAt: Date.now() - days * 86400000,
+    _receipts: mkReceipts(receipts, score), _asBuyer: { score: 25 + (agentId % 20), receipts: agentId % 4 },
+  });
+  PROVIDERS = [
+    p("0x9aec413ff42858eaf080af688b9a858396af1174", 851356, "atlas-embed", "embedding", "Embeddings", 46.4, 9, 6.2, 1.1, 5, { onchain: 6, x402: 3, job: 0 }, 92.0, 12),
+    p("0x2f81ba0d7cc4e9a5301bb6f2a7e4419c8d0a5b3e", 712004, "orion-rerank", "rerank", "Reranking", 52.8, 14, 9.4, 0.8, 9, { onchain: 8, x402: 4, job: 2 }, 95.5, 21),
+    p("0xd18b06f4a3e952c7018df6b25a940c3e7f2158ab", 745210, "pyxis-ocr", "ocr", "OCR & document parsing", 44.7, 11, 7.1, 1.4, 7, { onchain: 7, x402: 3, job: 1 }, 93.4, 9),
+    p("0xb47d9e1f6c05a2384fd1e9b7c2a6580d3e17f4a9", 733918, "helix-ocr", "ocr", "OCR & document parsing", 41.9, 8, 5.6, 1.7, 6, { onchain: 4, x402: 4, job: 0 }, 90.2, 15),
+    p("0xc718d7f85eaf0b817f6451ae5ac2aff55d5939d0", 851357, "nimbus-embed", "embedding", "Embeddings", 37.5, 5, 3.4, 0.6, 3, { onchain: 5, x402: 0, job: 0 }, 100.0, 7),
+    p("0x130c93bffc2e6285fd474438d404331b9103c741", 851358, "quartz-embed", "embedding", "Embeddings", 37.5, 5, 3.2, 0.9, 4, { onchain: 3, x402: 2, job: 0 }, 100.0, 8),
+    p("0x7e30c58a91bd46f2e8c7015a3d9b62f4081ca7d6", 690117, "corvus-llm", "llm-inference", "LLM inference", 33.2, 6, 3.9, 2.0, 4, { onchain: 2, x402: 4, job: 0 }, 84.0, 18),
+    p("0x5a92f7013e8cb4d6a72f19e05c83bd47206ef1c8", 801446, "lyra-embed", "embedding", "Embeddings", 29.6, 4, 2.1, 1.3, 2, { onchain: 1, x402: 3, job: 0 }, 97.0, 5),
+    p("0x6b4c3a762e01165f78ff75743d3f0decfed45dda", 600522, "vega-llm", "llm-inference", "LLM inference", 25.0, 0, 0, 0, 0, { onchain: 0, x402: 0, job: 0 }, 88.0, 3),
+    p("0x3c6a1de85f207b94ca3e08d716f5b420e9d3a06f", 822975, "mensa-rerank", "rerank", "Reranking", 25.0, 1, 0.7, 0, 1, { onchain: 1, x402: 0, job: 0 }, 99.0, 2),
+  ];
+  const b = (address, name, score, receipts, pos, neg, uniq) => ({
+    address, name, score, receipts, pos, neg, uniqueCounterparties: uniq,
+    _receipts: [], _asBuyer: { score, receipts },
+  });
+  BUYERS = [
+    b("0x8a3f1c9d2e5b47061af8c3d902e4b1576a0d9c11", "buyer-8a3f", 41.2, 12, 8.0, 0.4, 6),
+    b("0x4d71e0a8c3f52b9146de0a7c81f3b2059e6d4a70", "buyer-4d71", 34.9, 7, 4.6, 0.9, 4),
+    b("0xf20b5a1e9c74d3862ba0f5e13c8749d602e1b3af", "buyer-f20b", 28.3, 3, 1.8, 0.7, 3),
+    b("0x1c86d4b70e29f5a3418bc0e6d95f27401ab3e9d2", "buyer-1c86", 25.6, 2, 1.0, 0.5, 2),
+  ];
+}
+function mkReceipts(n, score) {
+  const out = [], now = Date.now();
+  for (let i = 0; i < Math.min(n, 8); i++) {
+    const ok = Math.random() < Math.max(0.5, score / 60);
+    out.push({
+      buyer: "0x" + Math.random().toString(16).slice(2, 10).padEnd(8, "0") + "…" + Math.random().toString(16).slice(2, 6),
+      outcome: ok ? "success" : "fail",
+      usdc: (Math.random() < 0.5 ? "0.01" : (0.1 + Math.random()).toFixed(3)),
+      latencyMs: Math.round(180 + (100 - score) * 6 + Math.random() * 260),
+      disputed: !ok && Math.random() < 0.35,
+      deliveredAt: now - i * 3600e3 * (5 + Math.random() * 22),
+      tx: null,
+    });
+  }
+  return out;
+}
+
+// ---- live mode ----
+async function loadLive() {
+  const [d, bu] = await Promise.all([
+    fetch(API + "/directory").then(r => r.ok ? r.json() : null).catch(() => null),
+    fetch(API + "/buyers").then(r => r.ok ? r.json() : null).catch(() => null),
+  ]);
+  if (!d) return false;
+  PROVIDERS = d.agents.map(a => ({
+    ...a, name: (a.metadataURI && /^https?:\/\/(?!127\.|localhost|0\.0\.0\.0|10\.|192\.168\.|172\.\d)/i.test(a.metadataURI)) ? a.metadataURI.replace(/^https?:\/\//, "").replace(/\/$/, "") : short(a.address),
+  }));
+  BUYERS = (bu ? bu.buyers : []).map(x => ({ ...x, name: short(x.address) }));
+  document.getElementById("s-src").textContent = "Live";
+  document.getElementById("s-src").style.color = "var(--good)";
+  return true;
+}
+
+function set(id, v) { const el = document.getElementById(id); if (el) el.textContent = v; }
+function renderStats() {
+  const P = PROVIDERS, sum = f => P.reduce((a, x) => a + f(x), 0);
+  set("s-total", P.length);
+  set("s-receipts", sum(x => x.receipts || 0));
+  set("s-onchain", sum(x => ((x.rails && x.rails.onchain) || 0) + ((x.rails && x.rails.job) || 0)));
+  set("s-x402", sum(x => (x.rails && x.rails.x402) || 0));
+}
+function renderTicker() {
+  const track = document.getElementById("ticker");
+  if (!track) return;
+  const items = (PROVIDERS.length ? PROVIDERS : []).slice(0, 12).map(a => {
+    const r = (a._receipts && a._receipts[0]) || null;
+    const ok = r ? r.outcome === "success" : Number(a.score) >= 35;
+    const usdc = r ? r.usdc : "0.01";
+    return `<span class="ev">◈ <b>${esc(a.name || short(a.address))}</b> · <span class="${ok ? "ok" : "no"}">${ok ? "success" : "fail"}</span> · ${esc(usdc)} USDC</span>`;
+  });
+  track.innerHTML = items.length ? items.concat(items).join("") : `<span class="ev dim">No recent activity</span>`;
+}
+(async function boot() {
+  const live = API && await loadLive();
+  if (!live) demoSeed();
+  renderStats();
+  renderTicker();
+  renderList();
+  // Live auto-refresh: re-pull the read-only API on an interval so new agents and
+  // receipts appear without a manual reload. Purely client-side — it never touches the
+  // node's indexing (/directory just reads in-memory state). Filters and the selected
+  // agent persist because renderList() reads from `state`. Skips work while the tab is
+  // hidden, and keeps the last good data if a poll fails rather than clobbering it.
+  if (live) setInterval(async () => {
+    if (document.hidden) return;
+    if (await loadLive()) { renderStats(); renderTicker(); renderList(); }
+  }, 15000);
+})();
+</script>
+</body>
+</html>

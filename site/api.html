@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Developer dashboard — Oculopus</title>
+<meta name="description" content="Create and manage Oculopus API keys, track usage and pick a plan. Free single-agent reads need no key; agents pay per request via x402.">
+<meta name="theme-color" content="#0A0D13">
+<link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon-32.png">
+<link rel="apple-touch-icon" href="/assets/favicon-180.png">
+<link rel="stylesheet" href="/assets/oculopus.css">
+<script src="/assets/site.js"></script>
+<style>
+  .signin{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;background:linear-gradient(90deg,var(--surface),var(--surface-2));border:1px solid var(--line);padding:14px 18px;margin:18px 0 8px}
+  .signin .si-l{font-size:13px;color:var(--dim);max-width:56ch;line-height:1.5}
+  .signin .si-l b{color:var(--text)}
+  .si-btns{display:flex;gap:10px;flex-wrap:wrap}
+  .si-btns .btn,.si-btns .launch{font-size:12.5px}
+  .note{font-size:12px;color:var(--accent-2);margin:0 0 18px;min-height:16px;font-family:"JetBrains Mono",monospace}
+
+  .dash{display:grid;grid-template-columns:minmax(0,1fr) 290px;gap:18px;align-items:start}
+  @media(max-width:900px){.dash{grid-template-columns:1fr}}
+  .panel{background:var(--surface);border:1px solid var(--line);padding:16px 18px;margin-bottom:16px}
+  .panel h3{font-size:14px;margin:0 0 14px;display:flex;align-items:center;gap:8px}
+  .mini{font:11px "JetBrains Mono",monospace;color:var(--brand-ink);background:var(--accent);border:none;padding:5px 11px;cursor:pointer;margin-left:auto;--cham:6px}
+  .mini:hover{background:var(--accent-2)}
+
+  table.keys{width:100%;border-collapse:collapse}
+  table.keys th{font:9.5px "JetBrains Mono",monospace;letter-spacing:1px;text-transform:uppercase;color:var(--faint);text-align:left;padding:0 8px 9px 0;font-weight:600}
+  table.keys td{font-size:12.5px;color:var(--text);padding:10px 8px 10px 0;border-top:1px solid var(--line)}
+  table.keys td.k{font:12px "JetBrains Mono",monospace;color:var(--dim)}
+  table.keys td.num{font:12px "JetBrains Mono",monospace;text-align:right;color:var(--dim)}
+  table.keys th.rt{text-align:right}
+  .rev{font:10px "JetBrains Mono",monospace;color:var(--faint);border:1px solid var(--line);padding:3px 9px;cursor:pointer}
+  .rev:hover{color:var(--bad);border-color:var(--bad)}
+  .kdot{display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--good);margin-right:8px;vertical-align:middle}
+
+  .meter{height:9px;background:var(--surface-2);border:1px solid var(--line);margin:2px 0 7px;overflow:hidden}
+  .meter > i{display:block;height:100%;background:linear-gradient(90deg,var(--accent),var(--accent-2))}
+  .usage-row{display:flex;gap:26px;flex-wrap:wrap;margin-top:16px}
+  .usage-row .u{font-size:11px;color:var(--dim)}
+  .usage-row .u b{display:block;font:600 18px "JetBrains Mono",monospace;color:var(--text);letter-spacing:-.5px;margin-bottom:1px}
+
+  .tier{border:1px solid var(--line);border-left:2px solid var(--line-2);padding:11px 13px;margin-bottom:10px}
+  .tier.free{border-left-color:var(--good)} .tier.agent{border-left-color:var(--accent)}
+  .tier h4{font-size:13px;display:flex;justify-content:space-between;align-items:center;gap:6px;margin:0 0 3px}
+  .tier .price{font:11px "JetBrains Mono",monospace;color:var(--accent-2);margin-bottom:7px}
+  .tier ul{list-style:none;margin:0}
+  .tier li{font-size:11.5px;color:var(--dim);padding:2px 0 2px 12px;position:relative;line-height:1.45}
+  .tier li::before{content:"·";position:absolute;left:2px;color:var(--faint)}
+  .cur{font:8.5px "JetBrains Mono",monospace;letter-spacing:1px;text-transform:uppercase;color:var(--good);border:1px solid var(--good);padding:1px 6px}
+  .pl{font:8.5px "JetBrains Mono",monospace;letter-spacing:1px;text-transform:uppercase;color:var(--faint);border:1px dashed var(--line-2);padding:1px 6px}
+  .mo{margin-left:auto;font:11px "JetBrains Mono",monospace;color:var(--faint)}
+</style>
+</head>
+<body>
+<canvas id="dots"></canvas>
+
+<header><div class="wrap"><nav class="nav">
+  <a class="brand" href="/"><img src="/assets/logo-mark.png" alt="">Oculopus <span style="color:var(--faint);font-weight:500;font-size:11px;letter-spacing:2px;font-family:'JetBrains Mono',monospace">APP</span></a>
+  <div class="links">
+    <a href="/explore">Explore</a><a href="/graph">Graph</a><a class="on" href="/api">API</a><a href="/network">Network</a>
+  </div>
+  <div class="right">
+    <a class="btn ghost" href="/">← Site</a>
+    <a class="launch" href="#signin" style="--cham:7px">Connect wallet</a>
+  </div>
+</nav></div></header>
+
+<div class="section"><div class="wrap">
+  <div class="frame sm" style="margin-bottom:8px"><h2>Developer dashboard</h2></div>
+  <p class="lead small" style="max-width:none">Create and manage API keys, watch usage and pick a plan. Free single-agent reads need <b>no key</b>; agents can skip accounts and pay per request via <b>x402</b>. Full endpoint reference lives in the <a href="/docs#/api" style="color:var(--brand-2)">docs</a>.</p>
+
+  <div class="signin" id="signin">
+    <div class="si-l"><b>Preview.</b> Accounts &amp; keys go live post-public — this is how the dashboard will look. Sign in with a wallet, or with email using a Circle user-controlled wallet.</div>
+    <div class="si-btns">
+      <button class="launch" style="--cham:7px" id="mm">Connect MetaMask</button>
+      <button class="btn ghost" id="em">Continue with email</button>
+    </div>
+  </div>
+  <div class="note" id="note"></div>
+
+  <div class="dash">
+    <div>
+      <div class="panel">
+        <h3>API keys <button class="mini" id="create">+ Create key</button></h3>
+        <table class="keys">
+          <thead><tr><th>Name</th><th>Key</th><th>Created</th><th class="rt">Requests</th><th></th></tr></thead>
+          <tbody>
+            <tr><td><span class="kdot"></span>production</td><td class="k">oc_live_••••••3f2a</td><td class="num">2026-06-12</td><td class="num">3,912</td><td><span class="rev">Revoke</span></td></tr>
+            <tr><td><span class="kdot"></span>staging</td><td class="k">oc_live_••••••b71c</td><td class="num">2026-07-02</td><td class="num">418</td><td><span class="rev">Revoke</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="panel">
+        <h3>Usage <span class="mo">Aug 2026</span></h3>
+        <div class="meter"><i style="width:43%"></i></div>
+        <div style="font:11px 'JetBrains Mono',monospace;color:var(--dim)">4,330 / 10,000 requests · resets in 27 days</div>
+        <div class="usage-row">
+          <div class="u"><b>Free</b>current plan</div>
+          <div class="u"><b>10 req/s</b>rate limit</div>
+          <div class="u"><b>92 ms</b>median latency</div>
+          <div class="u"><b>0.0%</b>error rate</div>
+        </div>
+      </div>
+    </div>
+
+    <aside>
+      <div class="panel">
+        <h3>Plan</h3>
+        <div class="tier free"><h4>Free <span class="cur">current</span></h4><div class="price">$0</div><ul><li>No key for single reads</li><li>10 req/s · 10k / month</li><li>The public good — always open</li></ul></div>
+        <div class="tier"><h4>Pro <span class="pl">planned</span></h4><div class="price">usage-based</div><ul><li>High limits · batch reads</li><li>Historical &amp; analytics</li></ul></div>
+        <div class="tier"><h4>Enterprise <span class="pl">planned</span></h4><div class="price">contact</div><ul><li>Credit oracle · SLA</li><li>Webhooks · audit exports</li></ul></div>
+        <div class="tier agent"><h4>Agents <span class="pl">x402</span></h4><div class="price">pay-per-request</div><ul><li>No account — pay per call</li><li>Settle in USDC via x402</li></ul></div>
+      </div>
+    </aside>
+  </div>
+</div></div>
+
+<script>
+const note = document.getElementById("note");
+const msg = "// preview — accounts & keys go live post-public";
+function flash(){ note.textContent = msg; }
+["mm","em","create"].forEach(id => document.getElementById(id).addEventListener("click", flash));
+document.querySelectorAll(".rev").forEach(b => b.addEventListener("click", flash));
+</script>
+</body>
+</html>

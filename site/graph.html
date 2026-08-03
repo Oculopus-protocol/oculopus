@@ -1,0 +1,254 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Graph — Oculopus</title>
+<meta name="description" content="The counterparty graph — pick an agent and see who it has transacted with, sized by volume and standing.">
+<meta name="theme-color" content="#0A0D13">
+<link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon-32.png">
+<link rel="apple-touch-icon" href="/assets/favicon-180.png">
+<link rel="stylesheet" href="/assets/oculopus.css">
+<script src="/assets/site.js"></script>
+<style>
+  .gwrap{height:calc(100vh - 64px);overflow:hidden;padding-top:12px}
+  .gpage{height:100%;display:flex;flex-direction:column;padding:0 20px}
+  .gtop{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-bottom:12px}
+  .gtop input{flex:0 1 440px;min-width:200px;font:13px "JetBrains Mono",monospace;color:var(--text);background:var(--surface);border:1px solid var(--line-2);padding:9px 12px;outline:none}
+  .gtop input:focus{border-color:var(--accent)}
+  .ggrid{flex:1;min-height:0;display:grid;grid-template-columns:250px minmax(0,1fr) 290px;gap:14px}
+  @media(max-width:1000px){.ggrid{grid-template-columns:1fr;grid-template-rows:auto minmax(0,1fr) auto}}
+  .gside{border:1px solid var(--line);background:var(--surface);display:flex;flex-direction:column;min-height:0;overflow:hidden}
+  .gside .body{padding:16px 18px;overflow-y:auto;min-height:0;flex:1;scrollbar-width:none}
+  .gside .body::-webkit-scrollbar{display:none}
+  .gs-head{display:flex;align-items:baseline;justify-content:space-between;gap:8px}
+  .gs-head h3{font-size:15px}
+  .gs-head .sc{font:600 20px "JetBrains Mono",monospace;letter-spacing:-.5px}
+  .gs-sub{font:11px "JetBrains Mono",monospace;color:var(--faint);margin:2px 0 12px}
+  .kv{display:flex;justify-content:space-between;gap:10px;font:12px "JetBrains Mono",monospace;padding:7px 0;border-bottom:1px solid var(--line)}
+  .kv:last-child{border-bottom:none}.kv span:first-child{color:var(--dim)}
+  .sect{font:9px "JetBrains Mono",monospace;letter-spacing:1.5px;text-transform:uppercase;color:var(--faint);margin:16px 0 6px}
+  .hint2{color:var(--faint);font-size:11.5px;line-height:1.6}
+  .empty2{color:var(--faint);font-size:12px;line-height:1.6}
+  .stage{position:relative;border:1px solid var(--line);background:radial-gradient(120% 120% at 50% 40%,#0d1220,#080b11);min-height:0;overflow:hidden}
+  .stage svg{display:block;width:100%;height:100%}
+  .gnode{cursor:pointer}
+  .glabel{font:9.5px "JetBrains Mono",monospace;fill:var(--dim);pointer-events:none}
+  .glabel.f{fill:var(--accent-2);font-size:11px}
+  .ghelp{position:absolute;right:12px;top:12px;font:10px "JetBrains Mono",monospace;color:var(--faint)}
+  .gtip{position:absolute;pointer-events:none;background:var(--surface-2);border:1px solid var(--line-2);padding:8px 11px;font:10.5px "JetBrains Mono",monospace;color:var(--text);line-height:1.6;opacity:0;transition:opacity .12s;z-index:5;white-space:nowrap;transform:translateY(-100%)}
+  .gmid{display:flex;flex-direction:column;min-height:0;gap:10px}
+  .gmid .stage{flex:1;min-height:0}
+  .gmode{position:absolute;left:12px;top:12px;display:flex;gap:2px;z-index:5}
+  .gmode button{font:9.5px "JetBrains Mono",monospace;letter-spacing:.5px;text-transform:uppercase;color:var(--dim);background:var(--surface);border:1px solid var(--line-2);padding:5px 11px;cursor:pointer}
+  .gmode button.on{color:var(--brand-ink);background:var(--accent);border-color:var(--accent)}
+  .glegend{display:flex;gap:14px;flex-wrap:wrap;align-items:center;border:1px solid var(--line);background:var(--bg-2);padding:7px 14px;font:10px "JetBrains Mono",monospace;color:var(--dim)}
+  .glegend .lg{display:inline-flex;align-items:center;gap:6px}
+  .glegend .lg.d{color:var(--faint)}
+  .glegend .dot{width:9px;height:9px;border-radius:50%;display:inline-block}
+  .cplist{margin-top:6px}
+  .cprow{display:grid;grid-template-columns:1fr 44px auto;gap:8px;align-items:center;padding:7px 2px;border-bottom:1px solid var(--line);cursor:pointer;font:11px "JetBrains Mono",monospace}
+  .cprow:hover,.cprow.sel{background:var(--surface-2)}
+  .cpr-ad{color:var(--text);display:flex;align-items:center;gap:6px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .cpr-dot{width:7px;height:7px;border-radius:50%;flex:none}
+  .cpr-bar{height:4px;background:var(--line);position:relative}
+  .cpr-bar i{position:absolute;left:0;top:0;bottom:0;background:var(--accent)}
+  .cpr-m{color:var(--dim);font-size:10px;white-space:nowrap;text-align:right}
+</style>
+</head>
+<body>
+<canvas id="dots"></canvas>
+
+<header><div class="wrap"><nav class="nav">
+  <a class="brand" href="/"><img src="/assets/logo-mark.png" alt="">Oculopus <span style="color:var(--faint);font-weight:500;font-size:11px;letter-spacing:2px;font-family:'JetBrains Mono',monospace">APP</span></a>
+  <div class="links">
+    <a href="/explore">Explore</a><a class="on" href="/graph">Graph</a><a href="/api">API</a><a href="/network">Network</a>
+  </div>
+  <div class="right">
+    <a class="btn ghost" href="/">← Site</a>
+  </div>
+</nav></div></header>
+
+<div class="section gwrap"><div class="gpage">
+  <div class="gtop">
+    <div class="frame sm" style="margin:0"><h2>Counterparty graph</h2></div>
+    <input id="q" placeholder="focus — name, 0x or id" autocomplete="off" spellcheck="false">
+  </div>
+  <div class="ggrid">
+    <aside class="gside"><div class="body" id="side"></div></aside>
+    <div class="gmid">
+      <div class="stage" id="stage">
+        <svg id="svg" preserveAspectRatio="xMidYMid meet"></svg>
+        <div class="ghelp">drag · hover for stats · click to locate</div>
+        <div class="gtip" id="gtip"></div>
+      </div>
+      <div class="glegend">
+        <span class="lg"><span class="dot" style="background:var(--accent)"></span>focus</span>
+        <span class="lg"><span class="dot" style="background:var(--surface-2);border:1px solid var(--accent-2)"></span>counterparty</span>
+        <span class="lg"><span class="dot" style="background:rgba(63,178,127,.4);border:1px solid var(--good)"></span>healthy</span>
+        <span class="lg"><span class="dot" style="background:rgba(229,72,77,.4);border:1px solid var(--bad)"></span>has failures</span>
+        <span class="lg d">node = volume · nearer centre = higher standing</span>
+      </div>
+    </div>
+    <aside class="gside"><div class="body" id="side2"><div class="empty2">Click a counterparty node to see its details &amp; stats.</div></div></aside>
+  </div>
+</div></div>
+
+<script>
+const API = window.OC_API || "";
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const short = a => a && a.length > 16 ? a.slice(0, 8) + "…" + a.slice(-4) : (a || "");
+const grade = s => s >= 45 ? "var(--brand)" : s < 30 ? "var(--bad)" : "var(--text)";
+
+const AGENTS = [
+  { address: "0x2f81ba0d7cc4e9a5301bb6f2a7e4419c8d0a5b3e", id: "712004", name: "orion-rerank", cat: "Reranking", score: 52.8, uniq: 9 },
+  { address: "0x9aec413ff42858eaf080af688b9a858396af1174", id: "851356", name: "atlas-embed", cat: "Embeddings", score: 46.4, uniq: 5 },
+  { address: "0xd18b06f4a3e952c7018df6b25a940c3e7f2158ab", id: "745210", name: "pyxis-ocr", cat: "OCR & document parsing", score: 44.7, uniq: 7 },
+  { address: "0x7e30c58a91bd46f2e8c7015a3d9b62f4081ca7d6", id: "690117", name: "corvus-llm", cat: "LLM inference", score: 33.2, uniq: 4 },
+];
+const byKey = k => { k = String(k).toLowerCase().trim(); return AGENTS.find(a => a.address === k || a.id === k || a.name === k) || AGENTS.find(a => a.address.includes(k) || a.name.includes(k)); };
+
+function seeded(str) { let h = 2166136261; for (const c of str) { h ^= c.charCodeAt(0); h = Math.imul(h, 16777619); } return () => { h += 0x6D2B79F5; let t = Math.imul(h ^ h >>> 15, 1 | h); t ^= t + Math.imul(t ^ t >>> 7, 61 | t); return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+
+function buildNetwork(a) {
+  const rnd = seeded(a.address);
+  const n = Math.max(4, Math.min(a.uniq || 6, 11)), cps = [];
+  for (let i = 0; i < n; i++) {
+    const standing = 0.15 + rnd() * 0.85, receipts = 1 + Math.floor(rnd() * 6);
+    const fails = rnd() < 0.3 ? Math.max(1, Math.floor(receipts * rnd() * 0.5)) : 0;
+    cps.push({ id: "0x" + Math.floor(rnd() * 0xffffffff).toString(16).padStart(8, "0") + "…" + Math.floor(rnd() * 0xffff).toString(16).padStart(4, "0"),
+      name: "buyer-" + Math.floor(rnd() * 0xffff).toString(16).padStart(4, "0"),
+      standing, receipts, fails, success: receipts - fails, vol: +(receipts * (0.01 + rnd() * 0.9)).toFixed(3) });
+  }
+  return cps;
+}
+
+const svg = document.getElementById("svg"), stage = document.getElementById("stage"), tip = document.getElementById("gtip");
+let W = 900, H = 600, nodes = [], links = [], drag = null, raf = null, alpha = 1, focus = null, selected = null, mode = "bubble";
+const NS = "http://www.w3.org/2000/svg";
+const el = (t, at) => { const e = document.createElementNS(NS, t); for (const k in at) e.setAttribute(k, at[k]); return e; };
+
+function setFocus(a) {
+  if (!a) return;
+  focus = a; selected = null; document.getElementById("q").value = "";
+  W = stage.clientWidth || 900; H = stage.clientHeight || 600;
+  svg.setAttribute("viewBox", `0 0 ${W} ${H}`);
+  const cx = W / 2, cy = H / 2;
+  const f = { key: "focus", name: a.name, r: 26, x: cx, y: cy, vx: 0, vy: 0, fixed: true, focus: true, data: a };
+  nodes = [f]; links = [];
+  for (const c of buildNetwork(a)) {
+    const nd = { key: c.id, name: c.name, r: Math.max(8, Math.min(24, 8 + Math.sqrt(c.vol) * 10)), x: cx, y: cy, vx: 0, vy: 0, data: c };
+    nodes.push(nd);
+    links.push({ s: f, t: nd, rest: 90 + (1 - c.standing) * 160, bad: c.fails > 0 });
+  }
+  layout(); drawStatic(); if (raf) cancelAnimationFrame(raf); tick(); renderFocus(); renderCounterparties();
+}
+
+function layout() {
+  const cx = W / 2, cy = H / 2; nodes[0].x = cx; nodes[0].y = cy;
+  const rnd = seeded(focus.address + "p");
+  nodes.slice(1).forEach(n => { const ang = rnd() * 6.283, rad = 130 + rnd() * 120; n.x = cx + Math.cos(ang) * rad; n.y = cy + Math.sin(ang) * rad; n.vx = n.vy = 0; n.fixed = false; });
+  alpha = 1;
+}
+
+function drawStatic() {
+  svg.innerHTML = "";
+  const gl = el("g", {}), gn = el("g", {});
+  for (const l of links) { l.line = el("line", { stroke: "rgba(255,255,255,.12)", "stroke-width": 1 }); gl.appendChild(l.line); }
+  for (const n of nodes) {
+    const g = el("g", { class: "gnode" });
+    if (n.focus) { n.glow = el("circle", { r: n.r + 9, fill: "var(--accent)", opacity: ".16" }); g.appendChild(n.glow); }
+    const bad = !n.focus && n.data.fails > 0;
+    n.circle = el("circle", { r: n.r, fill: n.focus ? "var(--accent)" : (bad ? "rgba(229,72,77,.22)" : "rgba(63,178,127,.20)"), stroke: n.focus ? "var(--accent-2)" : (bad ? "var(--bad)" : "var(--good)"), "stroke-width": n.focus ? 2 : 1.5 });
+    n.label = el("text", { class: "glabel" + (n.focus ? " f" : ""), "text-anchor": "middle" });
+    n.label.textContent = n.focus ? n.name : short(n.name);
+    g.appendChild(n.circle); g.appendChild(n.label);
+    g.addEventListener("pointerdown", e => { drag = n; n.fixed = true; e.preventDefault(); });
+    g.addEventListener("pointerenter", () => { hi(n); showTip(n); });
+    g.addEventListener("pointerleave", () => { hi(null); hideTip(); });
+    g.addEventListener("click", () => { if (!n.focus) selectNode(n.key); });
+    gn.appendChild(g);
+  }
+  svg.appendChild(gl); svg.appendChild(gn); paint();
+}
+
+function paint() {
+  for (const l of links) {
+    let dx = l.t.x - l.s.x, dy = l.t.y - l.s.y, d = Math.hypot(dx, dy) || 1, ux = dx / d, uy = dy / d;
+    l.line.setAttribute("x1", (l.s.x + ux * l.s.r).toFixed(1)); l.line.setAttribute("y1", (l.s.y + uy * l.s.r).toFixed(1));
+    l.line.setAttribute("x2", (l.t.x - ux * l.t.r).toFixed(1)); l.line.setAttribute("y2", (l.t.y - uy * l.t.r).toFixed(1));
+  }
+  for (const n of nodes) { const x = n.x.toFixed(1), y = n.y.toFixed(1); n.circle.setAttribute("cx", x); n.circle.setAttribute("cy", y); if (n.glow) { n.glow.setAttribute("cx", x); n.glow.setAttribute("cy", y); } n.label.setAttribute("x", x); n.label.setAttribute("y", (n.y + n.r + 12).toFixed(1)); }
+}
+
+function hi(n) {
+  for (const l of links) l.line.setAttribute("stroke", !n ? "rgba(255,255,255,.12)" : (l.t === n || l.s === n ? "rgba(91,157,255,.6)" : "rgba(255,255,255,.05)"));
+  for (const nd of nodes) nd.circle.setAttribute("opacity", !n || nd === n || nd.focus ? "1" : ".4");
+}
+
+function tick() {
+  for (let i = 0; i < nodes.length; i++) for (let j = i + 1; j < nodes.length; j++) {
+    const a = nodes[i], b = nodes[j]; let dx = b.x - a.x, dy = b.y - a.y, d = Math.hypot(dx, dy) || 1;
+    const fr = 7000 / (d * d), ux = dx / d, uy = dy / d;
+    if (!a.fixed) { a.vx -= ux * fr; a.vy -= uy * fr; } if (!b.fixed) { b.vx += ux * fr; b.vy += uy * fr; }
+  }
+  for (const l of links) { let dx = l.t.x - l.s.x, dy = l.t.y - l.s.y, d = Math.hypot(dx, dy) || 1; const fr = (d - l.rest) * 0.02, ux = dx / d, uy = dy / d; if (!l.t.fixed) { l.t.vx -= ux * fr; l.t.vy -= uy * fr; } }
+  for (const n of nodes) { if (n.fixed) continue; n.vx *= 0.85; n.vy *= 0.85; n.x += n.vx * alpha; n.y += n.vy * alpha; n.x = Math.max(n.r + 8, Math.min(W - n.r - 8, n.x)); n.y = Math.max(n.r + 8, Math.min(H - n.r - 18, n.y)); }
+  paint();
+  alpha = Math.max(0.03, alpha * 0.99);
+  raf = requestAnimationFrame(tick);
+}
+
+svg.addEventListener("pointermove", e => { if (!drag) return; const b = svg.getBoundingClientRect(); drag.x = (e.clientX - b.left) / b.width * W; drag.y = (e.clientY - b.top) / b.height * H; alpha = Math.max(alpha, 0.5); });
+addEventListener("pointerup", () => { if (drag && !drag.focus) drag.fixed = false; drag = null; });
+
+function showTip(n) {
+  if (n.focus) { const a = n.data; tip.innerHTML = `<b>${esc(a.name)}</b> · ${a.score.toFixed(1)}<br>${links.length} counterparties · $${links.reduce((s, l) => s + l.t.data.vol, 0).toFixed(2)}`; }
+  else { const c = n.data, rate = Math.round(c.success / c.receipts * 100); tip.innerHTML = `<b>${esc(short(c.id))}</b><br>${c.receipts} receipts · ${rate}% ok<br>$${c.vol.toFixed(3)} · standing ${(c.standing * 100).toFixed(0)}`; }
+  tip.style.left = Math.max(6, Math.min(W - 170, n.x + 14)) + "px";
+  tip.style.top = (n.y - n.r - 8) + "px";
+  tip.style.opacity = "1";
+}
+function hideTip() { tip.style.opacity = "0"; }
+
+function renderFocus() {
+  const a = focus, tot = links.reduce((s, l) => s + l.t.data.vol, 0);
+  document.getElementById("side").innerHTML = `<div class="gs-head"><h3>${esc(a.name)}</h3><span class="sc" style="color:${grade(a.score)}">${a.score.toFixed(1)}</span></div>
+    <div class="gs-sub">${esc(a.cat)} · #${esc(a.id)}</div>
+    <div class="kv"><span>Counterparties</span><b>${links.length}</b></div>
+    <div class="kv"><span>Total volume</span><b>$${tot.toFixed(2)}</b></div>
+    <div class="kv"><span>Healthy links</span><b>${links.filter(l => !l.bad).length} / ${links.length}</b></div>
+    <div class="sect">How to read</div>
+    <p class="hint2">Click a counterparty node — its details appear on the right. Drag nodes, or search another agent to walk the graph.</p>`;
+}
+
+// right panel: ranked counterparty list (interaction metrics with the focus agent)
+function renderCounterparties() {
+  const tot = links.reduce((s, l) => s + l.t.data.vol, 0) || 1;
+  const maxV = Math.max(0.001, ...links.map(l => l.t.data.vol));
+  const rows = links.slice().sort((a, b) => b.t.data.vol - a.t.data.vol);
+  document.getElementById("side2").innerHTML =
+    `<div class="gs-head"><h3>Counterparties</h3><span class="sc" style="font-size:16px;color:var(--dim)">${links.length}</span></div>
+     <div class="gs-sub">by volume with ${esc(focus.name)}</div>
+     <div class="cplist">` +
+    rows.map(l => { const c = l.t.data, rate = Math.round(c.success / c.receipts * 100), pct = (c.vol / tot * 100).toFixed(0);
+      return `<div class="cprow" data-key="${esc(l.t.key)}" title="$${c.vol.toFixed(3)} · standing ${(c.standing * 100).toFixed(0)}">
+        <span class="cpr-ad"><span class="cpr-dot" style="background:${c.fails ? 'var(--bad)' : 'var(--good)'}"></span>${esc(short(c.id))}</span>
+        <span class="cpr-bar"><i style="width:${(c.vol / maxV * 100).toFixed(0)}%"></i></span>
+        <span class="cpr-m">${pct}% · ${c.receipts}r · ${rate}%</span>
+      </div>`; }).join("") + `</div>`;
+  document.querySelectorAll("#side2 .cprow").forEach(r => r.addEventListener("click", () => selectNode(r.dataset.key)));
+}
+function selectNode(key) {
+  const n = nodes.find(x => x.key === key); if (!n) return;
+  hi(n);
+  document.querySelectorAll("#side2 .cprow").forEach(r => r.classList.toggle("sel", r.dataset.key === key));
+  for (const nd of nodes) nd.circle.setAttribute("stroke-width", nd === n ? 3 : (nd.focus ? 2 : 1.5));
+}
+
+document.getElementById("q").addEventListener("keydown", e => { if (e.key === "Enter") { const a = byKey(e.target.value); if (a) setFocus(a); } });
+new ResizeObserver(() => { W = stage.clientWidth || W; H = stage.clientHeight || H; svg.setAttribute("viewBox", `0 0 ${W} ${H}`); if (nodes[0]) { nodes[0].x = W / 2; nodes[0].y = H / 2; alpha = Math.max(alpha, 0.4); } }).observe(stage);
+setFocus(AGENTS[0]);
+</script>
+</body>
+</html>

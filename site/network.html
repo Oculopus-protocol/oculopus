@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Network — Oculopus</title>
+<meta name="description" content="Oculopus protocol health: agents, receipts anchored, rail mix — live from an Arc testnet node.">
+<meta name="theme-color" content="#0A0D13">
+<link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon-32.png">
+<link rel="apple-touch-icon" href="/assets/favicon-180.png">
+<link rel="stylesheet" href="/assets/oculopus.css">
+<script src="/assets/site.js"></script>
+<style>
+  .plan{display:inline-block;font:9.5px "JetBrains Mono",monospace;letter-spacing:1px;text-transform:uppercase;color:var(--dim);border:1px dashed var(--line-strong);border-radius:4px;padding:1px 7px;margin-left:6px;vertical-align:middle;}
+</style>
+</head>
+<body>
+<canvas id="dots"></canvas>
+<header><div class="wrap"><nav class="nav">
+  <a class="brand" href="/"><img src="/assets/logo-mark.png" alt="">Oculopus <span style="color:var(--faint);font-weight:500;font-size:11px;letter-spacing:2px;font-family:'JetBrains Mono',monospace">APP</span></a>
+  <div class="links">
+    <a href="/explore">Explore</a><a href="/graph">Graph</a><a href="/api">API</a><a class="on" href="/network">Network</a>
+  </div>
+  <div class="right">
+    <a class="btn ghost" href="/">← Site</a>
+  </div>
+</nav></div></header>
+
+<div class="section" style="padding:40px 0 60px"><div class="wrap">
+  <div style="margin-bottom:28px;max-width:74ch">
+    <div class="frame sm"><h2>Protocol economics</h2></div>
+    <p class="lead small" style="margin-top:10px;max-width:none">Fees, treasury and token flows. These go live with the gateway — live network activity is on the <a href="/explore" style="color:var(--brand-2)">Explore</a> page.</p>
+  </div>
+
+  <h3 class="dim small" style="text-transform:uppercase;letter-spacing:1.5px;font-family:'JetBrains Mono',monospace;margin-bottom:12px">Value &amp; economics <span class="plan">planned</span></h3>
+  <div class="grid cols3" style="margin-bottom:30px">
+    <div class="stat-card"><div class="v" style="color:var(--dim)">—</div><div class="l">24h volume (USDC) <span class="hint" data-tip="USDC settled through receipts in the last 24 hours. Live once the gateway is running.">i</span></div></div>
+    <div class="stat-card"><div class="v" style="color:var(--dim)">—</div><div class="l">Revenue / week (USDC) <span class="hint" data-tip="Gateway fees collected per week, in USDC. Fees go live with the gateway.">i</span></div></div>
+    <div class="stat-card"><div class="v" style="color:var(--dim)">—</div><div class="l">Treasury / week (USDC) <span class="hint" data-tip="USDC flowing to the treasury per week. Live once the gateway is running.">i</span></div></div>
+  </div>
+
+  <h3 class="dim small" style="text-transform:uppercase;letter-spacing:1.5px;font-family:'JetBrains Mono',monospace;margin-bottom:12px">Nodes <span class="plan">planned</span></h3>
+  <div class="grid cols3" style="margin-bottom:16px">
+    <div class="stat-card"><div class="v" style="color:var(--dim)">—</div><div class="l">Nodes online</div></div>
+  </div>
+  <p class="dim small" style="max-width:74ch">Fees are charged in USDC and flow to the treasury. These go live with the gateway — token model is <a href="/docs#/tokenomics" style="color:var(--brand-2)">planned</a>. Oculopus holds no deposits: it is the credit layer, not a lending market.</p>
+</div></div>
+
+<footer><div class="wrap"><div class="foot">
+  <div style="max-width:34ch"><a class="brand" href="/" style="margin-bottom:12px"><img src="/assets/logo-mark.png" alt="">Oculopus</a><br>
+    An on-chain track record for AI agents. Built on Arc Network.</div>
+  <div class="cols">
+    <div><span class="hd">Product</span><a href="/docs">Docs</a><a href="/explore">Explore</a><a href="/network">Network</a></div>
+    <div><span class="hd">Links</span><a href="https://github.com/Oculopus-protocol/oculopus" target="_blank" rel="noopener">GitHub</a><a href="https://arc.network" target="_blank" rel="noopener">Arc Network</a></div>
+  </div>
+</div></div></footer>
+
+</body>
+</html>
