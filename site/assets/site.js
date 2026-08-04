@@ -13,9 +13,9 @@
     else { try { const u = new URL(q); if (u.protocol === "http:" || u.protocol === "https:") localStorage.setItem("oc-api", u.origin); } catch { /* ignore a malformed ?api= */ } }
   }
   const stored = localStorage.getItem("oc-api");
-  const selfServed = /(^|\.)node\.oculopus\.xyz$/.test(location.hostname)
+  const selfServed = /(^|\.)api\.oculopus\.xyz$/.test(location.hostname)
     || location.hostname === "localhost" || location.hostname === "127.0.0.1";
-  window.OC_API = stored !== null ? stored : (selfServed ? location.origin : "https://node.oculopus.xyz");
+  window.OC_API = stored !== null ? stored : (selfServed ? location.origin : "https://api.oculopus.xyz");
 })();
 
 // ------------------------------------------------------------- ambient starfield

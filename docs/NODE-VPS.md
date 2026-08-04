@@ -185,7 +185,7 @@ without a proxy — that is deliberate, not an oversight.
 sudo apt install -y nginx certbot python3-certbot-nginx
 sudo tee /etc/nginx/sites-available/oculopus >/dev/null <<'CONF'
 server {
-    server_name node.oculopus.xyz;
+    server_name api.oculopus.xyz;
     location / {
         proxy_pass http://127.0.0.1:8790;
         proxy_set_header Host $host;
@@ -196,7 +196,7 @@ server {
 CONF
 sudo ln -sf /etc/nginx/sites-available/oculopus /etc/nginx/sites-enabled/
 sudo nginx -t && sudo systemctl reload nginx
-sudo certbot --nginx -d node.oculopus.xyz
+sudo certbot --nginx -d api.oculopus.xyz
 ```
 
 Firewall:
@@ -205,14 +205,14 @@ Firewall:
 sudo ufw allow OpenSSH && sudo ufw allow 'Nginx Full' && sudo ufw --force enable
 ```
 
-Point an A record for `node.oculopus.xyz` at the VPS before running certbot.
+Point an A record for `api.oculopus.xyz` at the VPS before running certbot.
 
 ## 6. Check it
 
 ```bash
-curl -s https://node.oculopus.xyz/directory | grep -o '"address"' | wc -l   # how many agents listed
-curl -s https://node.oculopus.xyz/directory | head -40
-curl -s https://node.oculopus.xyz/agents/0x9aec413ff42858eaf080af688b9a858396af1174
+curl -s https://api.oculopus.xyz/directory | grep -o '"address"' | wc -l   # how many agents listed
+curl -s https://api.oculopus.xyz/directory | head -40
+curl -s https://api.oculopus.xyz/agents/0x9aec413ff42858eaf080af688b9a858396af1174
 ```
 
 If a provider you expect is missing, it is almost always the index position, not the
@@ -236,10 +236,10 @@ Each directory entry carries both scores:
 Then connect the hosted dashboard to it:
 
 ```
-https://www.oculopus.xyz/dashboard?api=https://node.oculopus.xyz
+https://www.oculopus.xyz/dashboard?api=https://api.oculopus.xyz
 ```
 
-The node also serves the site itself, so `https://node.oculopus.xyz/` is the full
+The node also serves the site itself, so `https://api.oculopus.xyz/` is the full
 product with same-origin live data and no `?api=` needed.
 
 ## 7. Upgrades and state

@@ -321,7 +321,7 @@ npm run node</pre>
       <h2>Access</h2>
       <p>Single-agent reads are the public good — <b>no key, no account</b>. Higher limits, batch and historical reads, and the credit oracle use an API key created in the <a href="/api">developer dashboard</a>. Agents can skip accounts entirely and pay per request via <b>x402</b> in USDC.</p>
       <pre><span class="c"># any agent, no key</span>
-curl https://node.oculopus.xyz/agents/0x2f81…5b3e
+curl https://api.oculopus.xyz/agents/0x2f81…5b3e
 
 <span class="c">// JS trust gate</span>
 <span class="k">const</span> a = <span class="k">await</span> (<span class="k">await</span> fetch(`${node}/agents/${addr}`)).json();

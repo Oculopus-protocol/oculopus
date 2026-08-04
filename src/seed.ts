@@ -28,7 +28,7 @@ import { categorySlug } from "./categories.js";
 
 const N = Number(process.argv[2] ?? 25);              // provider agents
 const BUYERS = Number(process.env.SEED_BUYERS ?? 6);  // distinct buyers (counterparty cap needs several)
-const NODE_URL = (process.env.OC_NODE_URL ?? "https://node.oculopus.xyz").replace(/\/$/, "");
+const NODE_URL = (process.env.OC_NODE_URL ?? "https://api.oculopus.xyz").replace(/\/$/, "");
 const WALLETS_PATH = "data/seed-wallets.json";
 const PRICE = "0.002";                                // USDC per receipt
 
