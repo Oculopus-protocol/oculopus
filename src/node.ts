@@ -58,6 +58,17 @@ const SAVE_EVERY_CHUNKS = 50;
 // cheap filtered scan; agents registered longer ago than this still list and score,
 // just without an agentId (so no ERC-8004 raw column).
 const DISCOVERY_LOOKBACK_CHUNKS = 30n;
+// Pace RPC calls so a burst (backfill catch-up, discovery/anchor lookbacks) stays under
+// the endpoint's rate limit instead of tripping -32005. A small delay between successive
+// eth_getLogs is enough; set 0 on a dedicated/unlimited RPC. Complements the fallback+retry
+// transport, which only reacts AFTER a request has already failed.
+const RPC_THROTTLE_MS = Number(process.env.OCULOPUS_RPC_THROTTLE_MS ?? 120);
+const sleep = (ms: number): Promise<void> => new Promise((r) => setTimeout(r, ms));
+// Owners whose registration window we scanned and found nothing — cache the miss so a
+// repeat lookup does not re-burst DISCOVERY_LOOKBACK_CHUNKS getLogs. Session-only, and
+// state.agentIds (real hits from the forward scan) is checked first, so a later
+// registration still resolves and this never blocks it.
+const noAgentId = new Set<string>();
 
 // Node role. The same binary scales from one all-in-one node (demo) to a fleet by
 // config alone: an `indexer` stays light — syncs head, validates receipts, lists
@@ -318,6 +329,7 @@ async function scan(): Promise<void> {
       from = to + 1n;
       state.lastBlock = Number(to);
       if (++chunksSinceSave >= SAVE_EVERY_CHUNKS) { saveState(); chunksSinceSave = 0; }
+      if (RPC_THROTTLE_MS) await sleep(RPC_THROTTLE_MS);
     }
     saveState();
   } catch (e) {
@@ -468,6 +480,7 @@ async function findAgentId(owner: Hex): Promise<{ agentId: string; agentURI: str
   // Fast path: the scan indexes every Registration into state.agentIds, so any agent
   // whose registration we have already scanned resolves with no RPC at all.
   if (state.agentIds![key]) return state.agentIds![key]!;
+  if (noAgentId.has(key)) return null; // scanned the window before, found nothing — don't re-burst
   // Fallback: a registration the main scan has not reached yet (e.g. a fast-forwarded
   // node that jumped past it). Bounded lookback from head; cache whatever it finds.
   const head = await pub.getBlockNumber();
@@ -475,6 +488,7 @@ async function findAgentId(owner: Hex): Promise<{ agentId: string; agentURI: str
     const to = head - i * CHUNK;
     if (to <= 0n) break;
     const from = to > CHUNK ? to - CHUNK + 1n : 0n;
+    if (i > 0n && RPC_THROTTLE_MS) await sleep(RPC_THROTTLE_MS);
     const logs = await pub.getLogs({ address: ERC8004.identity, event: identityAbi[7], args: { owner }, fromBlock: from, toBlock: to });
     const log = logs[logs.length - 1]; // most recent registration by this owner
     if (log) {
@@ -484,6 +498,7 @@ async function findAgentId(owner: Hex): Promise<{ agentId: string; agentURI: str
     }
     if (from === 0n) break;
   }
+  noAgentId.add(key); // remember the miss so a repeat lookup does not re-burst the lookback
   return null;
 }
 
@@ -643,6 +658,7 @@ async function findAnchor(root: Hex): Promise<{ tx: Hex; block: number } | null>
     const to = head - i * CHUNK;
     if (to <= 0n) break;
     const from = to > CHUNK ? to - CHUNK + 1n : 0n;
+    if (i > 0n && RPC_THROTTLE_MS) await sleep(RPC_THROTTLE_MS);
     const logs = await pub.getLogs({ address: CONTRACTS.memo, event: memoAbi[2], args: { memoId: root }, fromBlock: from, toBlock: to });
     const log = logs[0];
     if (log) return { tx: log.transactionHash, block: Number(log.blockNumber) };

@@ -4,6 +4,10 @@ node_modules
 *.log
 .DS_Store
 
+# Circle entity-secret recovery files — never commit
+*-recovery-file.json
+.circle/
+
 # Hardhat (contracts added later)
 artifacts/
 cache-hardhat/
@@ -18,6 +22,7 @@ docs/SCRIPT.*
 
 # Derived indexer state — regenerable from chain
 data/
+data-*/
 deployments.local.json
 
 # build artifact from the mascot generator
