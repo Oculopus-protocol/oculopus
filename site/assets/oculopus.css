@@ -7,7 +7,7 @@
 
 :root{
   --bg:#0A0D13; --bg-2:#0E121A; --surface:#141A24; --surface-2:#1C2532;
-  --line:rgba(255,255,255,.08); --line-2:rgba(255,255,255,.15);
+  --line:rgba(255,255,255,.11); --line-2:rgba(255,255,255,.18);
   --text:#E6EBF2; --dim:#8B97A8; --faint:#5A6675;
   /* steel-blue accent replaces the old violet; keep --brand* names so inner pages inherit */
   --accent:#5B9DFF; --accent-2:#8FBEFF; --accent-soft:rgba(91,157,255,.12);
@@ -19,6 +19,9 @@
   --card:var(--surface); --card-2:var(--bg-2); --line-strong:var(--line-2); --brand-ink:#061225;
 }
 *{margin:0;padding:0;box-sizing:border-box}
+[hidden]{display:none!important}
+/* a faint top-edge highlight so dark boxes read as lit from above */
+.card,.panel,.stat-card,.tier,.layer,.frame,.node,.mcard,.gside,.stage,.term,.code{box-shadow:inset 0 1px 0 rgba(255,255,255,.07)}
 html{scroll-behavior:smooth;scrollbar-width:none}
 html::-webkit-scrollbar{display:none}
 body{background:var(--bg);color:var(--text);font-family:Inter,system-ui,-apple-system,"Segoe UI",sans-serif;

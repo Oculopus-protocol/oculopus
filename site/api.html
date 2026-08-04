@@ -25,7 +25,7 @@
   .wopts{display:flex;flex-direction:column;gap:10px}
   .wopt{display:flex;align-items:center;gap:12px;width:100%;text-align:left;background:var(--bg-2);border:1px solid var(--line-2);color:var(--text);font:600 13px "Space Grotesk",sans-serif;padding:13px 15px;cursor:pointer;transition:border-color .15s,background .15s;--cham:8px;clip-path:polygon(var(--cham) 0,100% 0,100% calc(100% - var(--cham)),calc(100% - var(--cham)) 100%,0 100%,0 var(--cham))}
   .wopt:hover{border-color:var(--accent);background:var(--surface-2)}
-  .wopt .wi{font-size:16px;width:20px;text-align:center}
+  .wopt .wi{width:20px;height:20px;flex:none;object-fit:contain;display:inline-flex;align-items:center;justify-content:center;font-size:15px}
   .wopt .wtag{margin-left:auto;font:8px "JetBrains Mono",monospace;letter-spacing:1px;text-transform:uppercase;color:var(--faint);border:1px solid var(--line-2);padding:1px 6px}
   .mfoot{margin-top:16px;font:10px "JetBrains Mono",monospace;color:var(--faint);text-align:center}
   .mfoot b{color:var(--dim)}
@@ -144,7 +144,7 @@
     <button class="mx" id="modalX" aria-label="Close">×</button>
     <h3 class="mtitle">Connect wallet</h3>
     <div class="wopts" id="wopts">
-      <button class="wopt" id="mm"><span class="wi">🦊</span><span>MetaMask</span></button>
+      <button class="wopt" id="mm"><img class="wi" src="/assets/metamask.svg" alt=""><span>MetaMask</span></button>
       <button class="wopt" id="emailBtn"><span class="wi">✉</span><span>Sign in with email</span><span class="wtag">Circle</span></button>
     </div>
 
