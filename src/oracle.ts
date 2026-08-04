@@ -14,6 +14,7 @@ import "dotenv/config";
 import express from "express";
 import { createGatewayMiddleware } from "@circle-fin/x402-batching/server";
 import { ARC_TESTNET_CAIP2, GATEWAY_TESTNET_FACILITATOR } from "./x402.js";
+import { consumeKey } from "./oracleKeys.js";
 
 const PORT = Number(process.env.ORACLE_PORT ?? 8791);
 const UPSTREAM = process.env.ORACLE_UPSTREAM ?? `http://localhost:${process.env.NODE_PORT ?? 8790}`;
@@ -48,6 +49,13 @@ const gateway = createGatewayMiddleware({
   sellerAddress: SELLER,
   facilitatorUrl: GATEWAY_TESTNET_FACILITATOR,
   networks: [ARC_TESTNET_CAIP2],
+});
+
+// Free tier: a valid API key with monthly quota left bypasses x402 (grantAccess); keyless
+// agents — or a key whose quota is spent — fall through to pay-per-call.
+gateway.onProtectedRequest(async (ctx) => {
+  const key = (ctx.getHeader("x-api-key") || (ctx.getHeader("authorization") || "").replace(/^Bearer\s+/i, "")) as string;
+  if (consumeKey(key)) return { grantAccess: true };
 });
 
 // GET /oracle/:addr — paid. Returns a standardised credit tier for an agent address.

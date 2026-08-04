@@ -19,7 +19,8 @@
     "circle:register": "tsx src/circle/registerSecret.ts",
     "circle:wallet": "tsx src/circle/createWallet.ts",
     "oracle": "tsx src/oracle.ts",
-    "agent:creditcheck": "tsx src/agents/creditCheck.ts"
+    "agent:creditcheck": "tsx src/agents/creditCheck.ts",
+    "key:create": "tsx src/oracleKey.ts"
   },
   "license": "MIT",
   "dependencies": {
