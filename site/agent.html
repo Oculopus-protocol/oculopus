@@ -29,16 +29,16 @@
   .agent-cap{height:calc(100vh - 64px);overflow:hidden;padding-top:14px}
   .panel{margin-bottom:14px}
   @media(max-width:900px){.agent-cap{height:auto;overflow:visible}.ag-grid{grid-template-columns:1fr;overflow:visible}.ag-grid > div{overflow:visible}.ent .sc{margin-left:0}}
-  .panel{background:var(--surface);border:1px solid var(--line);padding:18px 20px;margin-bottom:16px}
-  .panel .ph{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:14px}
+  .panel{background:var(--surface);border:1px solid var(--line);padding:14px 16px;margin-bottom:12px}
+  .panel .ph{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:10px}
   .panel .ph h3{font-size:14px;letter-spacing:-.2px}
   .panel .ph .tag,.tf{font:10px "JetBrains Mono",monospace;letter-spacing:1.2px;text-transform:uppercase;color:var(--faint)}
   .tfs{display:flex;gap:2px}
   .tfs button{font:10px "JetBrains Mono",monospace;letter-spacing:1px;color:var(--dim);background:none;border:1px solid var(--line);padding:3px 8px;cursor:pointer}
   .tfs button.on{color:var(--brand-ink);background:var(--accent);border-color:var(--accent)}
-  .kv{display:flex;justify-content:space-between;gap:12px;font:12.5px "JetBrains Mono",monospace;padding:8px 0;border-bottom:1px solid var(--line)}
+  .kv{display:flex;justify-content:space-between;gap:12px;font:12.5px "JetBrains Mono",monospace;padding:6px 0;border-bottom:1px solid var(--line)}
   .kv:last-child{border-bottom:none}.kv span:first-child{color:var(--dim)}
-  .cp{display:flex;align-items:center;justify-content:space-between;gap:10px;font:12px "JetBrains Mono",monospace;padding:7px 0;border-bottom:1px solid var(--line)}
+  .cp{display:flex;align-items:center;justify-content:space-between;gap:10px;font:12px "JetBrains Mono",monospace;padding:6px 0;border-bottom:1px solid var(--line)}
   .cp:last-child{border-bottom:none}.cp .a{color:var(--text)}
   table.rt{width:100%;border-collapse:collapse;font:12px "JetBrains Mono",monospace}
   table.rt th{text-align:left;font:10px "JetBrains Mono",monospace;letter-spacing:1.2px;text-transform:uppercase;color:var(--faint);font-weight:500;padding:0 10px 9px;border-bottom:1px solid var(--line)}
@@ -226,7 +226,7 @@ function render(a) {
         </div>
         <div class="panel">
           <div class="ph"><h3>Top counterparties</h3><span class="tag">by standing</span></div>
-          ${cps.map(c => `<div class="cp"><span class="a">${esc(c.addr)}</span><span class="dim">${esc(c.w)}</span></div>`).join("")}
+          ${cps.slice(0, 3).map(c => `<div class="cp"><span class="a">${esc(c.addr)}</span><span class="dim">${esc(c.w)}</span></div>`).join("")}
         </div>
         <div class="panel">
           <div class="ph"><h3>Identity</h3></div>

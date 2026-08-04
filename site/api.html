@@ -4,27 +4,37 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Developer dashboard — Oculopus</title>
-<meta name="description" content="Create and manage Oculopus API keys, track usage and pick a plan. Free single-agent reads need no key; agents pay per request via x402.">
+<meta name="description" content="Connect a wallet to create and manage Oculopus API keys, track usage and pick a plan. Free single-agent reads need no key; agents pay per request via x402.">
 <meta name="theme-color" content="#0A0D13">
 <link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon-32.png">
 <link rel="apple-touch-icon" href="/assets/favicon-180.png">
 <link rel="stylesheet" href="/assets/oculopus.css">
 <script src="/assets/site.js"></script>
 <style>
-  .signin{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;background:linear-gradient(90deg,var(--surface),var(--surface-2));border:1px solid var(--line);padding:14px 18px;margin:18px 0 8px}
-  .signin .si-l{font-size:13px;color:var(--dim);max-width:56ch;line-height:1.5}
-  .signin .si-l b{color:var(--text)}
-  .si-btns{display:flex;gap:10px;flex-wrap:wrap}
-  .si-btns .btn,.si-btns .launch{font-size:12.5px}
-  .note{font-size:12px;color:var(--accent-2);margin:0 0 18px;min-height:16px;font-family:"JetBrains Mono",monospace}
+  /* --- sign-in gate --- */
+  .gate{max-width:600px}
+  .gcard{background:var(--surface);border:1px solid var(--line);padding:22px 24px;margin:18px 0}
+  .gopts{display:flex;gap:12px;flex-wrap:wrap}
+  .gform{display:flex;flex-direction:column;gap:10px;max-width:360px}
+  .gform label{font:11px "JetBrains Mono",monospace;color:var(--dim)}
+  .gform label b{color:var(--text)}
+  .gform input{font:14px "JetBrains Mono",monospace;color:var(--text);background:var(--bg-2);border:1px solid var(--line-2);padding:10px 12px;outline:none;letter-spacing:.5px}
+  .gform input:focus{border-color:var(--accent)}
+  #otp{letter-spacing:6px;font-size:17px;text-align:center}
+  .grow{display:flex;gap:10px;align-items:center}
+  .lnk{background:none;border:none;color:var(--faint);font:11px "JetBrains Mono",monospace;cursor:pointer;padding:6px 0}
+  .lnk:hover{color:var(--dim)}
+  .gnote{font:12px "JetBrains Mono",monospace;color:var(--accent-2);min-height:16px;margin-top:12px}
+  .gnote.err{color:var(--bad)}
+  #acct{font:11px "JetBrains Mono",monospace;color:var(--dim);margin-right:12px}
 
+  /* --- dashboard --- */
   .dash{display:grid;grid-template-columns:minmax(0,1fr) 290px;gap:18px;align-items:start}
   @media(max-width:900px){.dash{grid-template-columns:1fr}}
   .panel{background:var(--surface);border:1px solid var(--line);padding:16px 18px;margin-bottom:16px}
   .panel h3{font-size:14px;margin:0 0 14px;display:flex;align-items:center;gap:8px}
   .mini{font:11px "JetBrains Mono",monospace;color:var(--brand-ink);background:var(--accent);border:none;padding:5px 11px;cursor:pointer;margin-left:auto;--cham:6px}
   .mini:hover{background:var(--accent-2)}
-
   table.keys{width:100%;border-collapse:collapse}
   table.keys th{font:9.5px "JetBrains Mono",monospace;letter-spacing:1px;text-transform:uppercase;color:var(--faint);text-align:left;padding:0 8px 9px 0;font-weight:600}
   table.keys td{font-size:12.5px;color:var(--text);padding:10px 8px 10px 0;border-top:1px solid var(--line)}
@@ -34,13 +44,12 @@
   .rev{font:10px "JetBrains Mono",monospace;color:var(--faint);border:1px solid var(--line);padding:3px 9px;cursor:pointer}
   .rev:hover{color:var(--bad);border-color:var(--bad)}
   .kdot{display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--good);margin-right:8px;vertical-align:middle}
-
+  .dnote{font:11px "JetBrains Mono",monospace;color:var(--faint);margin-top:10px;min-height:14px}
   .meter{height:9px;background:var(--surface-2);border:1px solid var(--line);margin:2px 0 7px;overflow:hidden}
   .meter > i{display:block;height:100%;background:linear-gradient(90deg,var(--accent),var(--accent-2))}
   .usage-row{display:flex;gap:26px;flex-wrap:wrap;margin-top:16px}
   .usage-row .u{font-size:11px;color:var(--dim)}
   .usage-row .u b{display:block;font:600 18px "JetBrains Mono",monospace;color:var(--text);letter-spacing:-.5px;margin-bottom:1px}
-
   .tier{border:1px solid var(--line);border-left:2px solid var(--line-2);padding:11px 13px;margin-bottom:10px}
   .tier.free{border-left-color:var(--good)} .tier.agent{border-left-color:var(--accent)}
   .tier h4{font-size:13px;display:flex;justify-content:space-between;align-items:center;gap:6px;margin:0 0 3px}
@@ -63,24 +72,50 @@
   </div>
   <div class="right">
     <a class="btn ghost" href="/">← Site</a>
-    <a class="launch" href="#signin" style="--cham:7px">Connect wallet</a>
+    <span id="acct" hidden></span>
+    <button class="launch" id="pill" style="--cham:7px">Connect wallet</button>
   </div>
 </nav></div></header>
 
 <div class="section"><div class="wrap">
-  <div class="frame sm" style="margin-bottom:8px"><h2>Developer dashboard</h2></div>
-  <p class="lead small" style="max-width:none">Create and manage API keys, watch usage and pick a plan. Free single-agent reads need <b>no key</b>; agents can skip accounts and pay per request via <b>x402</b>. Full endpoint reference lives in the <a href="/docs#/api" style="color:var(--brand-2)">docs</a>.</p>
 
-  <div class="signin" id="signin">
-    <div class="si-l"><b>Preview.</b> Accounts &amp; keys go live post-public — this is how the dashboard will look. Sign in with a wallet, or with email using a Circle user-controlled wallet.</div>
-    <div class="si-btns">
-      <button class="launch" style="--cham:7px" id="mm">Connect MetaMask</button>
-      <button class="btn ghost" id="em">Continue with email</button>
+  <!-- GATE: shown until a wallet is connected -->
+  <div class="gate" id="gate">
+    <div class="frame sm" style="margin-bottom:8px"><h2>Developer dashboard</h2></div>
+    <p class="lead small" style="max-width:none">Connect a wallet to create and manage API keys, watch usage and pick a plan. Free single-agent reads need <b>no key</b>; agents can skip accounts and pay per request via <b>x402</b>. Endpoint reference lives in the <a href="/docs#/api" style="color:var(--brand-2)">docs</a>.</p>
+
+    <div class="gcard">
+      <div class="gopts" id="gopts">
+        <button class="launch" style="--cham:7px" id="mm">Connect MetaMask</button>
+        <button class="btn ghost" id="emailBtn">Sign in with email</button>
+      </div>
+
+      <form class="gform" id="emailForm" hidden>
+        <label>Email</label>
+        <input type="email" id="email" placeholder="you@domain.com" autocomplete="email" spellcheck="false" required>
+        <div class="grow">
+          <button class="launch" style="--cham:7px" id="sendCode" type="submit">Send code</button>
+          <button class="lnk" id="emailBack" type="button">← back</button>
+        </div>
+      </form>
+
+      <form class="gform" id="otpForm" hidden>
+        <label>Enter the 6-digit code sent to <b id="otpEmail"></b></label>
+        <input id="otp" inputmode="numeric" maxlength="6" placeholder="••••••" autocomplete="one-time-code" spellcheck="false">
+        <div class="grow">
+          <button class="launch" style="--cham:7px" id="verify" type="submit">Verify &amp; connect</button>
+          <button class="lnk" id="otpBack" type="button">← back</button>
+        </div>
+      </form>
+
+      <div class="gnote" id="gnote"></div>
     </div>
-  </div>
-  <div class="note" id="note"></div>
 
-  <div class="dash">
+    <p class="dim small" style="max-width:64ch">Email sign-in creates a <b>Circle user-controlled wallet</b> — the keys stay yours, Circle never holds them. MetaMask connects a wallet you already have.</p>
+  </div>
+
+  <!-- DASHBOARD: shown after connect -->
+  <div class="dash" id="dash" hidden>
     <div>
       <div class="panel">
         <h3>API keys <button class="mini" id="create">+ Create key</button></h3>
@@ -91,6 +126,7 @@
             <tr><td><span class="kdot"></span>staging</td><td class="k">oc_live_••••••b71c</td><td class="num">2026-07-02</td><td class="num">418</td><td><span class="rev">Revoke</span></td></tr>
           </tbody>
         </table>
+        <div class="dnote" id="dnote"></div>
       </div>
 
       <div class="panel">
@@ -116,14 +152,83 @@
       </div>
     </aside>
   </div>
+
 </div></div>
 
 <script>
-const note = document.getElementById("note");
-const msg = "// preview — accounts & keys go live post-public";
-function flash(){ note.textContent = msg; }
-["mm","em","create"].forEach(id => document.getElementById(id).addEventListener("click", flash));
-document.querySelectorAll(".rev").forEach(b => b.addEventListener("click", flash));
+const $ = id => document.getElementById(id);
+const gate = $("gate"), dash = $("dash"), pill = $("pill"), acct = $("acct"), gnote = $("gnote");
+const short = a => a && a.length > 12 ? a.slice(0, 6) + "…" + a.slice(-4) : (a || "");
+const LOCAL = ["localhost", "127.0.0.1"].includes(location.hostname);
+
+function note(msg, err) { gnote.textContent = msg || ""; gnote.classList.toggle("err", !!err); }
+
+// Circle user-controlled wallet, email flow. The OTP round-trip needs a backend that
+// holds the Circle API key (never shipped in this static, public repo). These call that
+// backend when it exists; on localhost they fall back to a demo session so the dashboard
+// is reviewable, and on the live site (no backend yet) they say so rather than fake a pass.
+async function circleStart(email) {
+  try { const r = await fetch("/api/auth/start", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ email }) }); if (r.ok) return await r.json(); } catch (e) {}
+  if (LOCAL) return { demo: true };
+  throw new Error("Email sign-in activates once the wallet backend is live.");
+}
+async function circleVerify(email, code) {
+  try { const r = await fetch("/api/auth/verify", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ email, code }) }); if (r.ok) return await r.json(); } catch (e) {}
+  if (LOCAL) { if (/^\d{6}$/.test(code)) return { demo: true, address: "0x" + code.padEnd(40, "0") }; throw new Error("Enter the 6-digit code."); }
+  throw new Error("Email sign-in activates once the wallet backend is live.");
+}
+
+function connected(label) {
+  gate.hidden = true; dash.hidden = false;
+  acct.textContent = label; acct.hidden = false;
+  pill.textContent = "Sign out"; pill.dataset.on = "1";
+  $("dnote").textContent = "";
+}
+function signout() {
+  dash.hidden = true; gate.hidden = false;
+  acct.hidden = true; pill.textContent = "Connect wallet"; delete pill.dataset.on;
+  $("gopts").hidden = false; $("emailForm").hidden = true; $("otpForm").hidden = true; note("");
+}
+
+// --- gate wiring ---
+pill.addEventListener("click", () => {
+  if (pill.dataset.on) return signout();
+  gate.scrollIntoView({ behavior: "smooth" }); $("mm").focus();
+});
+
+$("mm").addEventListener("click", async () => {
+  note("");
+  if (!window.ethereum) { note("MetaMask not detected — install it, or use email.", true); return; }
+  try {
+    const acc = await window.ethereum.request({ method: "eth_requestAccounts" });
+    if (acc && acc[0]) connected(short(acc[0]));
+  } catch (e) { note("Connection cancelled.", true); }
+});
+
+$("emailBtn").addEventListener("click", () => { $("gopts").hidden = true; $("emailForm").hidden = false; note(""); $("email").focus(); });
+$("emailBack").addEventListener("click", () => { $("emailForm").hidden = true; $("gopts").hidden = false; note(""); });
+$("otpBack").addEventListener("click", () => { $("otpForm").hidden = true; $("emailForm").hidden = false; note(""); });
+
+$("emailForm").addEventListener("submit", async e => {
+  e.preventDefault();
+  const email = $("email").value.trim();
+  if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) { note("Enter a valid email.", true); return; }
+  note("Sending code…");
+  try { await circleStart(email); $("otpEmail").textContent = email; $("emailForm").hidden = true; $("otpForm").hidden = false; note("Code sent — check your inbox."); $("otp").focus(); }
+  catch (err) { note(err.message, true); }
+});
+
+$("otpForm").addEventListener("submit", async e => {
+  e.preventDefault();
+  const email = $("email").value.trim(), code = $("otp").value.trim();
+  note("Verifying…");
+  try { const s = await circleVerify(email, code); connected(email); }
+  catch (err) { note(err.message, true); }
+});
+
+// dashboard controls — real create/revoke lands with the account backend
+$("create").addEventListener("click", () => { $("dnote").textContent = "// key management activates with your account backend"; });
+document.querySelectorAll(".rev").forEach(b => b.addEventListener("click", () => { $("dnote").textContent = "// key management activates with your account backend"; }));
 </script>
 </body>
 </html>

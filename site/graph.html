@@ -54,6 +54,17 @@
   .cpr-bar{height:4px;background:var(--line);position:relative}
   .cpr-bar i{position:absolute;left:0;top:0;bottom:0;background:var(--accent)}
   .cpr-m{color:var(--dim);font-size:10px;white-space:nowrap;text-align:right}
+  /* counterparty list — overlay inside the stage, collapsible by clicking its header */
+  .cpbox{position:absolute;right:12px;top:38px;width:262px;max-height:calc(100% - 52px);display:flex;flex-direction:column;background:rgba(11,15,22,.9);border:1px solid var(--line-2);z-index:4}
+  .cpbox .cph{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:9px 12px;cursor:pointer;border-bottom:1px solid var(--line);user-select:none}
+  .cpbox .cph h4{font:600 12px "Space Grotesk",sans-serif;display:flex;align-items:center;gap:7px}
+  .cpbox .cph .n{font:9.5px "JetBrains Mono",monospace;color:var(--dim);border:1px solid var(--line-2);padding:0 5px}
+  .cpbox .cph .cv{font:10px "JetBrains Mono",monospace;color:var(--faint);transition:transform .2s}
+  .cpbox.collapsed .cpbody{display:none}
+  .cpbox.collapsed .cph{border-bottom:none}
+  .cpbox.collapsed .cph .cv{transform:rotate(-90deg)}
+  .cpbody{overflow-y:auto;padding:2px 12px 8px;scrollbar-width:none}
+  .cpbody::-webkit-scrollbar{display:none}
 </style>
 </head>
 <body>
@@ -80,6 +91,10 @@
       <div class="stage" id="stage">
         <svg id="svg" preserveAspectRatio="xMidYMid meet"></svg>
         <div class="ghelp">drag · hover for stats · click to locate</div>
+        <div class="cpbox" id="cpbox">
+          <div class="cph" id="cph"><h4>Counterparties <span class="n" id="cpn">0</span></h4><span class="cv">▾</span></div>
+          <div class="cpbody" id="cpbody"></div>
+        </div>
         <div class="gtip" id="gtip"></div>
       </div>
       <div class="glegend">
@@ -90,7 +105,7 @@
         <span class="lg d">node = volume · nearer centre = higher standing</span>
       </div>
     </div>
-    <aside class="gside"><div class="body" id="side2"><div class="empty2">Click a counterparty node to see its details &amp; stats.</div></div></aside>
+    <aside class="gside"><div class="body" id="side2"><div class="empty2">Click a counterparty to see its details &amp; stats.</div></div></aside>
   </div>
 </div></div>
 
@@ -142,6 +157,7 @@ function setFocus(a) {
     links.push({ s: f, t: nd, rest: 90 + (1 - c.standing) * 160, bad: c.fails > 0 });
   }
   layout(); drawStatic(); if (raf) cancelAnimationFrame(raf); tick(); renderFocus(); renderCounterparties();
+  document.getElementById("side2").innerHTML = '<div class="empty2">Click a counterparty to see its details &amp; stats.</div>';
 }
 
 function layout() {
@@ -222,31 +238,53 @@ function renderFocus() {
     <p class="hint2">Click a counterparty node — its details appear on the right. Drag nodes, or search another agent to walk the graph.</p>`;
 }
 
-// right panel: ranked counterparty list (interaction metrics with the focus agent)
+// overlay inside the stage: ranked counterparty list (interaction with the focus agent)
 function renderCounterparties() {
   const tot = links.reduce((s, l) => s + l.t.data.vol, 0) || 1;
   const maxV = Math.max(0.001, ...links.map(l => l.t.data.vol));
   const rows = links.slice().sort((a, b) => b.t.data.vol - a.t.data.vol);
-  document.getElementById("side2").innerHTML =
-    `<div class="gs-head"><h3>Counterparties</h3><span class="sc" style="font-size:16px;color:var(--dim)">${links.length}</span></div>
-     <div class="gs-sub">by volume with ${esc(focus.name)}</div>
-     <div class="cplist">` +
-    rows.map(l => { const c = l.t.data, rate = Math.round(c.success / c.receipts * 100), pct = (c.vol / tot * 100).toFixed(0);
-      return `<div class="cprow" data-key="${esc(l.t.key)}" title="$${c.vol.toFixed(3)} · standing ${(c.standing * 100).toFixed(0)}">
-        <span class="cpr-ad"><span class="cpr-dot" style="background:${c.fails ? 'var(--bad)' : 'var(--good)'}"></span>${esc(short(c.id))}</span>
-        <span class="cpr-bar"><i style="width:${(c.vol / maxV * 100).toFixed(0)}%"></i></span>
-        <span class="cpr-m">${pct}% · ${c.receipts}r · ${rate}%</span>
-      </div>`; }).join("") + `</div>`;
-  document.querySelectorAll("#side2 .cprow").forEach(r => r.addEventListener("click", () => selectNode(r.dataset.key)));
+  document.getElementById("cpn").textContent = links.length;
+  document.getElementById("cpbody").innerHTML = rows.map(l => {
+    const c = l.t.data, pct = (c.vol / tot * 100).toFixed(0);
+    return `<div class="cprow" data-key="${esc(l.t.key)}" title="$${c.vol.toFixed(3)} · standing ${(c.standing * 100).toFixed(0)}">
+      <span class="cpr-ad"><span class="cpr-dot" style="background:${c.fails ? 'var(--bad)' : 'var(--good)'}"></span>${esc(short(c.id))}</span>
+      <span class="cpr-bar"><i style="width:${(c.vol / maxV * 100).toFixed(0)}%"></i></span>
+      <span class="cpr-m">${pct}% · ${c.receipts}r</span>
+    </div>`;
+  }).join("");
+  document.querySelectorAll("#cpbody .cprow").forEach(r => r.addEventListener("click", () => selectNode(r.dataset.key)));
 }
+
+// right panel: full stats for the clicked counterparty
+function renderCounterpartyDetail(c) {
+  const rate = c.receipts ? Math.round(c.success / c.receipts * 100) : 0;
+  const tot = links.reduce((s, l) => s + l.t.data.vol, 0) || 1;
+  const pct = (c.vol / tot * 100).toFixed(0);
+  const bad = c.fails > 0;
+  document.getElementById("side2").innerHTML =
+    `<div class="gs-head"><h3>${esc(short(c.id))}</h3><span class="sc" style="color:${bad ? 'var(--bad)' : 'var(--good)'}">${rate}%</span></div>
+     <div class="gs-sub">counterparty of ${esc(focus.name)}</div>
+     <div class="kv"><span>Receipts</span><b>${c.receipts}</b></div>
+     <div class="kv"><span>Successful</span><b style="color:var(--good)">${c.success}</b></div>
+     <div class="kv"><span>Failed</span><b style="color:${bad ? 'var(--bad)' : 'var(--text)'}">${c.fails}</b></div>
+     <div class="kv"><span>Volume</span><b>$${c.vol.toFixed(3)}</b></div>
+     <div class="kv"><span>Share of volume</span><b>${pct}%</b></div>
+     <div class="kv"><span>Standing</span><b>${(c.standing * 100).toFixed(0)}</b></div>
+     <div class="kv"><span>Health</span><b style="color:${bad ? 'var(--bad)' : 'var(--good)'}">${bad ? 'has failures' : 'healthy'}</b></div>
+     <div class="sect">Address</div>
+     <p class="hint2" style="word-break:break-all">${esc(c.id)}</p>`;
+}
+
 function selectNode(key) {
-  const n = nodes.find(x => x.key === key); if (!n) return;
-  hi(n);
-  document.querySelectorAll("#side2 .cprow").forEach(r => r.classList.toggle("sel", r.dataset.key === key));
+  const n = nodes.find(x => x.key === key); if (!n || n.focus) return;
+  selected = key; hi(n);
+  document.querySelectorAll("#cpbody .cprow").forEach(r => r.classList.toggle("sel", r.dataset.key === key));
   for (const nd of nodes) nd.circle.setAttribute("stroke-width", nd === n ? 3 : (nd.focus ? 2 : 1.5));
+  renderCounterpartyDetail(n.data);
 }
 
 document.getElementById("q").addEventListener("keydown", e => { if (e.key === "Enter") { const a = byKey(e.target.value); if (a) setFocus(a); } });
+document.getElementById("cph").addEventListener("click", () => document.getElementById("cpbox").classList.toggle("collapsed"));
 new ResizeObserver(() => { W = stage.clientWidth || W; H = stage.clientHeight || H; svg.setAttribute("viewBox", `0 0 ${W} ${H}`); if (nodes[0]) { nodes[0].x = W / 2; nodes[0].y = H / 2; alpha = Math.max(alpha, 0.4); } }).observe(stage);
 setFocus(AGENTS[0]);
 </script>

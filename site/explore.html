@@ -31,15 +31,15 @@
 }
 .tools .seg button.on { background: var(--brand); color: var(--brand-ink); }
 .ex-wrap { height: 100%; display: flex; flex-direction: column; }
-.explore-grid { display: grid; grid-template-columns: 1.45fr 1fr; gap: 22px; align-items: stretch; flex: 1; min-height: 0; }
+.explore-grid { display: grid; grid-template-columns: 1.7fr 1fr; gap: 22px; align-items: stretch; flex: 1; min-height: 0; }
 .explore-grid > div:first-child { display: flex; flex-direction: column; min-height: 0; }
 @media (max-width: 900px) { .explore-grid { grid-template-columns: 1fr; } }
 .res { flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain; scrollbar-width: none; padding-bottom: 8px; }
 .res::-webkit-scrollbar { display: none; }
 .rrow {
-  display: grid; grid-template-columns: 1fr 50px 46px 60px 40px; gap: 12px; align-items: center;
+  display: grid; grid-template-columns: 1fr 62px 50px 76px 76px; gap: 12px; align-items: center;
   background: rgba(255,255,255,.02); border: 1px solid var(--line); border-radius: 0;
-  padding: 7px 14px; margin-bottom: 5px; cursor: pointer; transition: border-color .2s, transform .15s, background .2s;
+  padding: 5px 14px; margin-bottom: 4px; cursor: pointer; transition: border-color .2s, transform .15s, background .2s;
 }
 .rrow:hover { border-color: var(--line-2); background: rgba(255,255,255,.045); transform: translateY(-1px); }
 .rrow.sel { border-color: var(--brand); }
@@ -66,7 +66,7 @@
 .met { display: flex; flex-direction: column; gap: 2px; padding: 8px 0; border-bottom: 1px solid var(--line); }
 .met .ml { font: 9px "JetBrains Mono", monospace; letter-spacing: .8px; text-transform: uppercase; color: var(--faint); }
 .met .mv { font: 14px "JetBrains Mono", monospace; color: var(--text); }
-.rhead { display: grid; grid-template-columns: 1fr 50px 46px 60px 40px; gap: 14px; padding: 0 14px 8px;
+.rhead { display: grid; grid-template-columns: 1fr 62px 50px 76px 76px; gap: 12px; padding: 0 14px 8px;
   font: 10px "JetBrains Mono", monospace; letter-spacing: 1.4px; text-transform: uppercase; color: var(--dim); }
 .rhead div:nth-child(2), .rhead div:nth-child(3), .rhead div:nth-child(4), .rhead div:nth-child(5) { text-align: right; }
 .rrow .rtrend { font: 11.5px "JetBrains Mono", monospace; text-align: right; }
@@ -129,14 +129,16 @@
       <option value="receipts">Sort: receipts</option>
       <option value="new">Sort: newest</option>
     </select>
-    <div class="seg" id="tf">
-      <button data-v="1d">1D</button><button data-v="7d" class="on">7D</button><button data-v="30d">30D</button>
-    </div>
+    <select id="tf">
+      <option value="1d">1D</option>
+      <option value="7d" selected>7D</option>
+      <option value="30d">30D</option>
+    </select>
   </div>
 
   <div class="explore-grid">
     <div>
-      <div class="rhead"><div>Agent</div><div>Oculopus</div><div>Δ</div><div>Vol</div><div>R</div></div>
+      <div class="rhead"><div>Agent</div><div>Oculopus</div><div>Δ</div><div>Volume</div><div>Receipts</div></div>
       <div class="res" id="res"></div>
     </div>
     <div class="detail" id="detail">
@@ -256,7 +258,7 @@ function renderList() {
 }
 
 function detailHtml(a, receipts, asBuyer) {
-  const rows = (receipts || []).slice(0, 8).map(r => {
+  const rows = (receipts || []).slice(0, 5).map(r => {
     const cls = r.outcome === "success" ? "ok-txt" : "bad-txt";
     const link = r.tx ? `<a href="${SCAN}/tx/${esc(r.tx)}" target="_blank" rel="noopener">tx ↗</a>` : `<span class="dim">—</span>`;
     return `<div class="rc-line"><span>${sa(r.buyer)}</span><span class="${cls}">${esc(r.outcome)} · ${esc(r.usdc)} USDC</span>${link}</div>`;
@@ -325,7 +327,7 @@ document.getElementById("q").addEventListener("input", e => { state.q = e.target
 document.getElementById("cat").addEventListener("change", e => { state.cat = e.target.value; renderList(); });
 document.getElementById("rail").addEventListener("change", e => { state.rail = e.target.value; renderList(); });
 document.getElementById("sort").addEventListener("change", e => { state.sort = e.target.value; renderList(); });
-document.getElementById("tf").addEventListener("click", e => { const b = e.target.closest("button"); if (!b) return; document.querySelectorAll("#tf button").forEach(x => x.classList.toggle("on", x === b)); state.tf = b.dataset.v; renderList(); });
+document.getElementById("tf").addEventListener("change", e => { state.tf = e.target.value; renderList(); });
 document.getElementById("role").addEventListener("click", e => {
   const b = e.target.closest("button"); if (!b) return;
   document.querySelectorAll("#role button").forEach(x => x.classList.toggle("on", x === b));
