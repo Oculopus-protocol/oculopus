@@ -27,6 +27,22 @@ function creditTier(score: number): string {
   return score >= 55 ? "PLATINUM" : score >= 45 ? "GOLD" : score >= 35 ? "SILVER" : score >= 30 ? "BRONZE" : "UNRATED";
 }
 
+// Cache the upstream score per address for a short TTL so a burst of paid calls for the
+// same agent doesn't hammer the node — reputation moves slowly, so a ~30s-old score is
+// fine. An unknown address 404s upstream, itself a valid answer (UNRATED / 0), cached too.
+const CACHE_MS = Number(process.env.ORACLE_CACHE_MS ?? 30_000);
+const cache = new Map<string, { score: number; at: number }>();
+
+async function scoreOf(addr: string): Promise<number> {
+  const hit = cache.get(addr);
+  if (hit && Date.now() - hit.at < CACHE_MS) return hit.score;
+  const r = await fetch(`${UPSTREAM}/agents/${addr}`, { signal: AbortSignal.timeout(4000) });
+  const score = r.ok ? Number(((await r.json()) as { score?: number }).score) || 0 : 0;
+  if (cache.size > 5000) cache.clear(); // bound memory on a public endpoint
+  cache.set(addr, { score, at: Date.now() });
+  return score;
+}
+
 const app = express();
 const gateway = createGatewayMiddleware({
   sellerAddress: SELLER,
@@ -40,11 +56,7 @@ app.get("/oracle/:addr", gateway.require(PRICE), async (req, res) => {
   const addr = String(req.params.addr).toLowerCase();
   if (!/^0x[0-9a-f]{40}$/.test(addr)) return res.status(400).json({ error: "expected a 0x address" });
   try {
-    // A registered agent with receipts returns a score; an unknown address 404s upstream,
-    // which is itself a valid credit answer — "no track record" → UNRATED — not an error.
-    // The caller already paid, so always hand back a usable tier rather than a 404.
-    const r = await fetch(`${UPSTREAM}/agents/${addr}`, { signal: AbortSignal.timeout(4000) });
-    const score = r.ok ? Number(((await r.json()) as { score?: number }).score) || 0 : 0;
+    const score = await scoreOf(addr);
     res.json({
       address: addr,
       score: +score.toFixed(1),
