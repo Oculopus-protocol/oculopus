@@ -46,6 +46,16 @@ async function scoreOf(addr: string): Promise<number> {
 }
 
 const app = express();
+
+// CORS — the dashboard on oculopus.xyz calls these endpoints cross-origin. Auth is a Bearer
+// token (not cookies), so a wildcard origin is safe; preflight (OPTIONS) short-circuits here.
+app.use((req, res, next) => {
+  res.setHeader("Access-Control-Allow-Origin", "*");
+  res.setHeader("Access-Control-Allow-Headers", "content-type, authorization, x-api-key");
+  res.setHeader("Access-Control-Allow-Methods", "GET, POST, DELETE, OPTIONS");
+  if (req.method === "OPTIONS") { res.sendStatus(204); return; }
+  next();
+});
 const gateway = createGatewayMiddleware({
   sellerAddress: SELLER,
   facilitatorUrl: GATEWAY_TESTNET_FACILITATOR,

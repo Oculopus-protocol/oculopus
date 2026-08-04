@@ -107,17 +107,14 @@
         <h3>API keys <button class="mini" id="create">+ Create key</button></h3>
         <table class="keys">
           <thead><tr><th>Name</th><th>Key</th><th>Created</th><th class="rt">Requests</th><th></th></tr></thead>
-          <tbody>
-            <tr><td><span class="kdot"></span>production</td><td class="k">oc_live_••••••3f2a</td><td class="num">2026-06-12</td><td class="num">3,912</td><td><span class="rev">Revoke</span></td></tr>
-            <tr><td><span class="kdot"></span>staging</td><td class="k">oc_live_••••••b71c</td><td class="num">2026-07-02</td><td class="num">418</td><td><span class="rev">Revoke</span></td></tr>
-          </tbody>
+          <tbody id="keyRows"></tbody>
         </table>
         <div class="dnote" id="dnote"></div>
       </div>
       <div class="panel">
         <h3>Usage <span class="mo">Aug 2026</span></h3>
-        <div class="meter"><i style="width:43%"></i></div>
-        <div style="font:11px 'JetBrains Mono',monospace;color:var(--dim)">4,330 / 10,000 requests · resets in 27 days</div>
+        <div class="meter"><i id="usageBar" style="width:0%"></i></div>
+        <div id="usageText" style="font:11px 'JetBrains Mono',monospace;color:var(--dim)">—</div>
         <div class="usage-row">
           <div class="u"><b>Free</b>current plan</div>
           <div class="u"><b>10 req/s</b>rate limit</div>
@@ -175,36 +172,85 @@
 const $ = id => document.getElementById(id);
 const dash = $("dash"), gate = $("gate"), pill = $("pill"), acct = $("acct"), gnote = $("gnote"), modal = $("authModal");
 const short = a => a && a.length > 12 ? a.slice(0, 6) + "…" + a.slice(-4) : (a || "");
-const LOCAL = ["localhost", "127.0.0.1"].includes(location.hostname);
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+// Account API lives with the oracle, proxied at /oracle/account/* on the node host.
+const ACCT = (window.OC_API || "") + "/oracle/account";
+let TOKEN = localStorage.getItem("oc-token") || "";
 
 function note(msg, err) { gnote.textContent = msg || ""; gnote.classList.toggle("err", !!err); }
-
-// Circle email sign-in. The OTP round-trip needs a backend holding the Circle API key
-// (never shipped in this static, public repo). These call that backend when it exists; on
-// localhost they fall back to a demo session so the dashboard is reviewable, and on the
-// live site (no backend yet) they say so rather than fake a pass.
-async function circleStart(email) {
-  try { const r = await fetch("/api/auth/start", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ email }) }); if (r.ok) return await r.json(); } catch (e) {}
-  if (LOCAL) return { demo: true };
-  throw new Error("Email sign-in activates once the wallet backend is live.");
-}
-async function circleVerify(email, code) {
-  try { const r = await fetch("/api/auth/verify", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ email, code }) }); if (r.ok) return await r.json(); } catch (e) {}
-  if (LOCAL) { if (/^\d{6}$/.test(code)) return { demo: true }; throw new Error("Enter the 6-digit code."); }
-  throw new Error("Email sign-in activates once the wallet backend is live.");
-}
+function dnote(html) { $("dnote").innerHTML = html || ""; }
 
 function resetModal() { $("wopts").hidden = false; $("emailForm").hidden = true; $("otpForm").hidden = true; note(""); }
 function openModal() { resetModal(); modal.hidden = false; }
 function closeModal() { modal.hidden = true; }
-function connected(label) {
+function connected(address) {
   closeModal(); dash.hidden = false; gate.hidden = true;
-  acct.textContent = label; acct.hidden = false;
-  pill.textContent = "Sign out"; pill.dataset.on = "1"; $("dnote").textContent = "";
+  acct.textContent = short(address); acct.hidden = false;
+  pill.textContent = "Sign out"; pill.dataset.on = "1"; dnote("");
+  loadKeys();
 }
 function signout() {
-  dash.hidden = true; gate.hidden = false;
-  acct.hidden = true; pill.textContent = "Connect wallet"; delete pill.dataset.on;
+  TOKEN = ""; localStorage.removeItem("oc-token"); localStorage.removeItem("oc-addr");
+  dash.hidden = true; gate.hidden = false; acct.hidden = true;
+  pill.textContent = "Connect wallet"; delete pill.dataset.on;
+}
+
+// Wallet sign-in (SIWE-style): nonce → personal_sign → verify → session token.
+async function siwe() {
+  if (!window.ethereum) { note("MetaMask not detected — install it to sign in.", true); return; }
+  note("Requesting wallet…");
+  let address;
+  try { address = (await window.ethereum.request({ method: "eth_requestAccounts" }))[0]; }
+  catch { note("Connection cancelled.", true); return; }
+  try {
+    const { nonce, message } = await (await fetch(`${ACCT}/nonce`)).json();
+    note("Sign the message in your wallet…");
+    const signature = await window.ethereum.request({ method: "personal_sign", params: [message, address] });
+    const r = await fetch(`${ACCT}/verify`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ address, signature, nonce }) });
+    if (!r.ok) { note("Sign-in failed: " + ((await r.json().catch(() => ({}))).error || r.status), true); return; }
+    const d = await r.json();
+    TOKEN = d.token; localStorage.setItem("oc-token", TOKEN); localStorage.setItem("oc-addr", d.address);
+    connected(d.address);
+  } catch (e) { note("Sign-in error: " + (e.message || e), true); }
+}
+
+async function loadKeys() {
+  try {
+    const r = await fetch(`${ACCT}/keys`, { headers: { authorization: "Bearer " + TOKEN } });
+    if (r.status === 401) return signout(); // token expired
+    renderKeys((await r.json()).keys || []);
+  } catch { dnote("// could not reach the account API"); }
+}
+function renderKeys(keys) {
+  $("keyRows").innerHTML = keys.length ? keys.map(k => `
+    <tr>
+      <td><span class="kdot"></span>${esc(k.label)}</td>
+      <td class="k">${esc(k.key.slice(0, 8) + "••••" + k.key.slice(-4))}</td>
+      <td class="num">${new Date(k.created_at).toISOString().slice(0, 10)}</td>
+      <td class="num">${(k.used || 0).toLocaleString()}</td>
+      <td><span class="rev" data-key="${esc(k.key)}">Revoke</span></td>
+    </tr>`).join("") : `<tr><td colspan="5" style="padding:14px 0;font:12px 'JetBrains Mono',monospace;color:var(--faint)">No keys yet — create one to start.</td></tr>`;
+  $("keyRows").querySelectorAll(".rev").forEach(b => b.addEventListener("click", () => revoke(b.dataset.key)));
+  const used = keys.reduce((s, k) => s + (k.used || 0), 0);
+  const limit = keys.reduce((s, k) => Math.max(s, k.monthly_limit || 0), 10000) || 10000;
+  $("usageBar").style.width = Math.min(100, used / limit * 100) + "%";
+  $("usageText").textContent = `${used.toLocaleString()} / ${limit.toLocaleString()} requests this month · ${keys.length} key${keys.length === 1 ? "" : "s"}`;
+}
+async function createKey() {
+  const label = prompt("Name this key:", "my-app");
+  if (label === null) return;
+  dnote("Creating…");
+  try {
+    const r = await fetch(`${ACCT}/keys`, { method: "POST", headers: { "content-type": "application/json", authorization: "Bearer " + TOKEN }, body: JSON.stringify({ label }) });
+    if (!r.ok) return dnote("// create failed (" + r.status + ")");
+    dnote(`New key — copy now, shown once: <code style="color:var(--accent-2)">${esc((await r.json()).key)}</code>`);
+    loadKeys();
+  } catch { dnote("// could not reach the account API"); }
+}
+async function revoke(key) {
+  if (!confirm("Revoke this key? Calls using it will start paying per request.")) return;
+  try { await fetch(`${ACCT}/keys/${encodeURIComponent(key)}`, { method: "DELETE", headers: { authorization: "Bearer " + TOKEN } }); loadKeys(); }
+  catch { dnote("// could not reach the account API"); }
 }
 
 // --- wiring ---
@@ -213,38 +259,13 @@ $("openAuth").addEventListener("click", openModal);
 $("modalX").addEventListener("click", closeModal);
 modal.addEventListener("click", e => { if (e.target === modal) closeModal(); });
 addEventListener("keydown", e => { if (e.key === "Escape" && !modal.hidden) closeModal(); });
+$("mm").addEventListener("click", siwe);
+$("create").addEventListener("click", createKey);
+// Email (Circle) sign-in — not wired yet; MetaMask is the live path.
+$("emailBtn").addEventListener("click", () => note("Email sign-in (Circle) is coming soon — use MetaMask for now."));
 
-$("mm").addEventListener("click", async () => {
-  note("");
-  if (!window.ethereum) { note("MetaMask not detected — install it, or use email.", true); return; }
-  try { const acc = await window.ethereum.request({ method: "eth_requestAccounts" }); if (acc && acc[0]) connected(short(acc[0])); }
-  catch (e) { note("Connection cancelled.", true); }
-});
-
-$("emailBtn").addEventListener("click", () => { $("wopts").hidden = true; $("emailForm").hidden = false; note(""); $("email").focus(); });
-$("emailBack").addEventListener("click", () => { $("emailForm").hidden = true; $("wopts").hidden = false; note(""); });
-$("otpBack").addEventListener("click", () => { $("otpForm").hidden = true; $("emailForm").hidden = false; note(""); });
-
-$("emailForm").addEventListener("submit", async e => {
-  e.preventDefault();
-  const email = $("email").value.trim();
-  if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) { note("Enter a valid email.", true); return; }
-  note("Sending code…");
-  try { await circleStart(email); $("otpEmail").textContent = email; $("emailForm").hidden = true; $("otpForm").hidden = false; note("Code sent — check your inbox."); $("otp").focus(); }
-  catch (err) { note(err.message, true); }
-});
-
-$("otpForm").addEventListener("submit", async e => {
-  e.preventDefault();
-  const email = $("email").value.trim(), code = $("otp").value.trim();
-  note("Verifying…");
-  try { await circleVerify(email, code); connected(email); }
-  catch (err) { note(err.message, true); }
-});
-
-// dashboard controls — real create/revoke lands with the account backend
-$("create").addEventListener("click", () => { $("dnote").textContent = "// key management activates with your account backend"; });
-document.querySelectorAll(".rev").forEach(b => b.addEventListener("click", () => { $("dnote").textContent = "// key management activates with your account backend"; }));
+// Restore a prior session (loadKeys signs out if the token has expired).
+if (TOKEN && localStorage.getItem("oc-addr")) connected(localStorage.getItem("oc-addr"));
 </script>
 </body>
 </html>
