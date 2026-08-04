@@ -11,11 +11,25 @@
 <link rel="stylesheet" href="/assets/oculopus.css">
 <script src="/assets/site.js"></script>
 <style>
-  /* --- sign-in gate --- */
-  .gate{max-width:600px}
-  .gcard{background:var(--surface);border:1px solid var(--line);padding:22px 24px;margin:18px 0}
-  .gopts{display:flex;gap:12px;flex-wrap:wrap}
-  .gform{display:flex;flex-direction:column;gap:10px;max-width:360px}
+  /* signed-out CTA */
+  .gate-cta{margin:24px 0}
+  .gate-cta p{margin-top:12px}
+  #acct{font:11px "JetBrains Mono",monospace;color:var(--dim);margin-right:12px}
+
+  /* connect modal */
+  .mback{position:fixed;inset:0;background:rgba(6,9,14,.72);backdrop-filter:blur(3px);display:flex;align-items:center;justify-content:center;z-index:50;padding:20px}
+  .mcard{position:relative;width:100%;max-width:400px;background:var(--surface);border:1px solid var(--line-2);padding:24px 24px 20px}
+  .mx{position:absolute;top:10px;right:12px;background:none;border:none;color:var(--faint);font-size:22px;line-height:1;cursor:pointer}
+  .mx:hover{color:var(--text)}
+  .mtitle{font-size:16px;margin:0 0 16px}
+  .wopts{display:flex;flex-direction:column;gap:10px}
+  .wopt{display:flex;align-items:center;gap:12px;width:100%;text-align:left;background:var(--bg-2);border:1px solid var(--line-2);color:var(--text);font:600 13px "Space Grotesk",sans-serif;padding:13px 15px;cursor:pointer;transition:border-color .15s,background .15s;--cham:8px;clip-path:polygon(var(--cham) 0,100% 0,100% calc(100% - var(--cham)),calc(100% - var(--cham)) 100%,0 100%,0 var(--cham))}
+  .wopt:hover{border-color:var(--accent);background:var(--surface-2)}
+  .wopt .wi{font-size:16px;width:20px;text-align:center}
+  .wopt .wtag{margin-left:auto;font:8px "JetBrains Mono",monospace;letter-spacing:1px;text-transform:uppercase;color:var(--faint);border:1px solid var(--line-2);padding:1px 6px}
+  .mfoot{margin-top:16px;font:10px "JetBrains Mono",monospace;color:var(--faint);text-align:center}
+  .mfoot b{color:var(--dim)}
+  .gform{display:flex;flex-direction:column;gap:10px;margin-top:14px}
   .gform label{font:11px "JetBrains Mono",monospace;color:var(--dim)}
   .gform label b{color:var(--text)}
   .gform input{font:14px "JetBrains Mono",monospace;color:var(--text);background:var(--bg-2);border:1px solid var(--line-2);padding:10px 12px;outline:none;letter-spacing:.5px}
@@ -24,11 +38,10 @@
   .grow{display:flex;gap:10px;align-items:center}
   .lnk{background:none;border:none;color:var(--faint);font:11px "JetBrains Mono",monospace;cursor:pointer;padding:6px 0}
   .lnk:hover{color:var(--dim)}
-  .gnote{font:12px "JetBrains Mono",monospace;color:var(--accent-2);min-height:16px;margin-top:12px}
+  .gnote{font:12px "JetBrains Mono",monospace;color:var(--accent-2);min-height:16px;margin-top:10px}
   .gnote.err{color:var(--bad)}
-  #acct{font:11px "JetBrains Mono",monospace;color:var(--dim);margin-right:12px}
 
-  /* --- dashboard --- */
+  /* dashboard */
   .dash{display:grid;grid-template-columns:minmax(0,1fr) 290px;gap:18px;align-items:start}
   @media(max-width:900px){.dash{grid-template-columns:1fr}}
   .panel{background:var(--surface);border:1px solid var(--line);padding:16px 18px;margin-bottom:16px}
@@ -78,43 +91,16 @@
 </nav></div></header>
 
 <div class="section"><div class="wrap">
+  <div class="frame sm" style="margin-bottom:8px"><h2>Developer dashboard</h2></div>
+  <p class="lead small" style="max-width:none">Create and manage API keys, watch usage and pick a plan. Free single-agent reads need <b>no key</b>; agents can skip accounts and pay per request via <b>x402</b>. Endpoint reference lives in the <a href="/docs#/api" style="color:var(--brand-2)">docs</a>.</p>
 
-  <!-- GATE: shown until a wallet is connected -->
-  <div class="gate" id="gate">
-    <div class="frame sm" style="margin-bottom:8px"><h2>Developer dashboard</h2></div>
-    <p class="lead small" style="max-width:none">Connect a wallet to create and manage API keys, watch usage and pick a plan. Free single-agent reads need <b>no key</b>; agents can skip accounts and pay per request via <b>x402</b>. Endpoint reference lives in the <a href="/docs#/api" style="color:var(--brand-2)">docs</a>.</p>
-
-    <div class="gcard">
-      <div class="gopts" id="gopts">
-        <button class="launch" style="--cham:7px" id="mm">Connect MetaMask</button>
-        <button class="btn ghost" id="emailBtn">Sign in with email</button>
-      </div>
-
-      <form class="gform" id="emailForm" hidden>
-        <label>Email</label>
-        <input type="email" id="email" placeholder="you@domain.com" autocomplete="email" spellcheck="false" required>
-        <div class="grow">
-          <button class="launch" style="--cham:7px" id="sendCode" type="submit">Send code</button>
-          <button class="lnk" id="emailBack" type="button">← back</button>
-        </div>
-      </form>
-
-      <form class="gform" id="otpForm" hidden>
-        <label>Enter the 6-digit code sent to <b id="otpEmail"></b></label>
-        <input id="otp" inputmode="numeric" maxlength="6" placeholder="••••••" autocomplete="one-time-code" spellcheck="false">
-        <div class="grow">
-          <button class="launch" style="--cham:7px" id="verify" type="submit">Verify &amp; connect</button>
-          <button class="lnk" id="otpBack" type="button">← back</button>
-        </div>
-      </form>
-
-      <div class="gnote" id="gnote"></div>
-    </div>
-
-    <p class="dim small" style="max-width:64ch">Email sign-in creates a <b>Circle user-controlled wallet</b> — the keys stay yours, Circle never holds them. MetaMask connects a wallet you already have.</p>
+  <!-- signed out -->
+  <div class="gate-cta" id="gate">
+    <button class="launch" style="--cham:7px" id="openAuth">Connect wallet</button>
+    <p class="dim small">Connect a wallet to view and manage your keys, usage and plan.</p>
   </div>
 
-  <!-- DASHBOARD: shown after connect -->
+  <!-- signed in -->
   <div class="dash" id="dash" hidden>
     <div>
       <div class="panel">
@@ -128,7 +114,6 @@
         </table>
         <div class="dnote" id="dnote"></div>
       </div>
-
       <div class="panel">
         <h3>Usage <span class="mo">Aug 2026</span></h3>
         <div class="meter"><i style="width:43%"></i></div>
@@ -141,7 +126,6 @@
         </div>
       </div>
     </div>
-
     <aside>
       <div class="panel">
         <h3>Plan</h3>
@@ -152,21 +136,53 @@
       </div>
     </aside>
   </div>
-
 </div></div>
+
+<!-- connect modal -->
+<div class="mback" id="authModal" hidden>
+  <div class="mcard">
+    <button class="mx" id="modalX" aria-label="Close">×</button>
+    <h3 class="mtitle">Connect wallet</h3>
+    <div class="wopts" id="wopts">
+      <button class="wopt" id="mm"><span class="wi">🦊</span><span>MetaMask</span></button>
+      <button class="wopt" id="emailBtn"><span class="wi">✉</span><span>Sign in with email</span><span class="wtag">Circle</span></button>
+    </div>
+
+    <form class="gform" id="emailForm" hidden>
+      <label>Email</label>
+      <input type="email" id="email" placeholder="you@domain.com" autocomplete="email" spellcheck="false" required>
+      <div class="grow">
+        <button class="launch" style="--cham:7px" id="sendCode" type="submit">Send code</button>
+        <button class="lnk" id="emailBack" type="button">← back</button>
+      </div>
+    </form>
+
+    <form class="gform" id="otpForm" hidden>
+      <label>Enter the 6-digit code sent to <b id="otpEmail"></b></label>
+      <input id="otp" inputmode="numeric" maxlength="6" placeholder="••••••" autocomplete="one-time-code" spellcheck="false">
+      <div class="grow">
+        <button class="launch" style="--cham:7px" id="verify" type="submit">Verify &amp; connect</button>
+        <button class="lnk" id="otpBack" type="button">← back</button>
+      </div>
+    </form>
+
+    <div class="gnote" id="gnote"></div>
+    <div class="mfoot">Email sign-in secured by <b>Circle Programmable Wallets</b></div>
+  </div>
+</div>
 
 <script>
 const $ = id => document.getElementById(id);
-const gate = $("gate"), dash = $("dash"), pill = $("pill"), acct = $("acct"), gnote = $("gnote");
+const dash = $("dash"), gate = $("gate"), pill = $("pill"), acct = $("acct"), gnote = $("gnote"), modal = $("authModal");
 const short = a => a && a.length > 12 ? a.slice(0, 6) + "…" + a.slice(-4) : (a || "");
 const LOCAL = ["localhost", "127.0.0.1"].includes(location.hostname);
 
 function note(msg, err) { gnote.textContent = msg || ""; gnote.classList.toggle("err", !!err); }
 
-// Circle user-controlled wallet, email flow. The OTP round-trip needs a backend that
-// holds the Circle API key (never shipped in this static, public repo). These call that
-// backend when it exists; on localhost they fall back to a demo session so the dashboard
-// is reviewable, and on the live site (no backend yet) they say so rather than fake a pass.
+// Circle email sign-in. The OTP round-trip needs a backend holding the Circle API key
+// (never shipped in this static, public repo). These call that backend when it exists; on
+// localhost they fall back to a demo session so the dashboard is reviewable, and on the
+// live site (no backend yet) they say so rather than fake a pass.
 async function circleStart(email) {
   try { const r = await fetch("/api/auth/start", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ email }) }); if (r.ok) return await r.json(); } catch (e) {}
   if (LOCAL) return { demo: true };
@@ -174,39 +190,39 @@ async function circleStart(email) {
 }
 async function circleVerify(email, code) {
   try { const r = await fetch("/api/auth/verify", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ email, code }) }); if (r.ok) return await r.json(); } catch (e) {}
-  if (LOCAL) { if (/^\d{6}$/.test(code)) return { demo: true, address: "0x" + code.padEnd(40, "0") }; throw new Error("Enter the 6-digit code."); }
+  if (LOCAL) { if (/^\d{6}$/.test(code)) return { demo: true }; throw new Error("Enter the 6-digit code."); }
   throw new Error("Email sign-in activates once the wallet backend is live.");
 }
 
+function resetModal() { $("wopts").hidden = false; $("emailForm").hidden = true; $("otpForm").hidden = true; note(""); }
+function openModal() { resetModal(); modal.hidden = false; }
+function closeModal() { modal.hidden = true; }
 function connected(label) {
-  gate.hidden = true; dash.hidden = false;
+  closeModal(); dash.hidden = false; gate.hidden = true;
   acct.textContent = label; acct.hidden = false;
-  pill.textContent = "Sign out"; pill.dataset.on = "1";
-  $("dnote").textContent = "";
+  pill.textContent = "Sign out"; pill.dataset.on = "1"; $("dnote").textContent = "";
 }
 function signout() {
   dash.hidden = true; gate.hidden = false;
   acct.hidden = true; pill.textContent = "Connect wallet"; delete pill.dataset.on;
-  $("gopts").hidden = false; $("emailForm").hidden = true; $("otpForm").hidden = true; note("");
 }
 
-// --- gate wiring ---
-pill.addEventListener("click", () => {
-  if (pill.dataset.on) return signout();
-  gate.scrollIntoView({ behavior: "smooth" }); $("mm").focus();
-});
+// --- wiring ---
+pill.addEventListener("click", () => pill.dataset.on ? signout() : openModal());
+$("openAuth").addEventListener("click", openModal);
+$("modalX").addEventListener("click", closeModal);
+modal.addEventListener("click", e => { if (e.target === modal) closeModal(); });
+addEventListener("keydown", e => { if (e.key === "Escape" && !modal.hidden) closeModal(); });
 
 $("mm").addEventListener("click", async () => {
   note("");
   if (!window.ethereum) { note("MetaMask not detected — install it, or use email.", true); return; }
-  try {
-    const acc = await window.ethereum.request({ method: "eth_requestAccounts" });
-    if (acc && acc[0]) connected(short(acc[0]));
-  } catch (e) { note("Connection cancelled.", true); }
+  try { const acc = await window.ethereum.request({ method: "eth_requestAccounts" }); if (acc && acc[0]) connected(short(acc[0])); }
+  catch (e) { note("Connection cancelled.", true); }
 });
 
-$("emailBtn").addEventListener("click", () => { $("gopts").hidden = true; $("emailForm").hidden = false; note(""); $("email").focus(); });
-$("emailBack").addEventListener("click", () => { $("emailForm").hidden = true; $("gopts").hidden = false; note(""); });
+$("emailBtn").addEventListener("click", () => { $("wopts").hidden = true; $("emailForm").hidden = false; note(""); $("email").focus(); });
+$("emailBack").addEventListener("click", () => { $("emailForm").hidden = true; $("wopts").hidden = false; note(""); });
 $("otpBack").addEventListener("click", () => { $("otpForm").hidden = true; $("emailForm").hidden = false; note(""); });
 
 $("emailForm").addEventListener("submit", async e => {
@@ -222,7 +238,7 @@ $("otpForm").addEventListener("submit", async e => {
   e.preventDefault();
   const email = $("email").value.trim(), code = $("otp").value.trim();
   note("Verifying…");
-  try { const s = await circleVerify(email, code); connected(email); }
+  try { await circleVerify(email, code); connected(email); }
   catch (err) { note(err.message, true); }
 });
 
