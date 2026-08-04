@@ -12,8 +12,10 @@ const db = new Database(DB_PATH);
 db.pragma("journal_mode = WAL");
 db.exec(`CREATE TABLE IF NOT EXISTS api_keys(
   key TEXT PRIMARY KEY, label TEXT, created_at INTEGER,
-  month TEXT, used INTEGER DEFAULT 0, monthly_limit INTEGER DEFAULT 10000
+  month TEXT, used INTEGER DEFAULT 0, monthly_limit INTEGER DEFAULT 10000, owner TEXT
 )`);
+// Migrate older DBs that predate the owner column (a key belongs to the wallet that made it).
+try { db.exec("ALTER TABLE api_keys ADD COLUMN owner TEXT"); } catch { /* already present */ }
 
 const FREE_LIMIT = Number(process.env.ORACLE_FREE_LIMIT ?? 10000);
 const ym = (): string => new Date().toISOString().slice(0, 7); // YYYY-MM
@@ -42,4 +44,26 @@ export function consumeKey(key: string | null | undefined): boolean {
   if (row.used >= row.monthly_limit) return false;
   db.prepare("UPDATE api_keys SET used = used + 1 WHERE key=?").run(key);
   return true;
+}
+
+export interface KeyRow { key: string; label: string; created_at: number; used: number; monthly_limit: number }
+
+/** Mint a key owned by a wallet address (from the dashboard, after sign-in). */
+export function mintKeyFor(owner: string, label = "key", limit = FREE_LIMIT): string {
+  const key = "oc_live_" + randomBytes(18).toString("hex");
+  db.prepare("INSERT INTO api_keys(key,label,created_at,month,used,monthly_limit,owner) VALUES(?,?,?,?,0,?,?)")
+    .run(key, label, Date.now(), ym(), limit, owner.toLowerCase());
+  return key;
+}
+
+/** Every key a wallet owns, with this month's usage. */
+export function keysOf(owner: string): KeyRow[] {
+  return db.prepare(
+    "SELECT key,label,created_at,used,monthly_limit FROM api_keys WHERE owner=? ORDER BY created_at DESC",
+  ).all(owner.toLowerCase()) as KeyRow[];
+}
+
+/** Delete a key, but only if it belongs to this owner. */
+export function revokeKey(owner: string, key: string): boolean {
+  return db.prepare("DELETE FROM api_keys WHERE key=? AND owner=?").run(key, owner.toLowerCase()).changes > 0;
 }

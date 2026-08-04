@@ -15,6 +15,7 @@ import express from "express";
 import { createGatewayMiddleware } from "@circle-fin/x402-batching/server";
 import { ARC_TESTNET_CAIP2, GATEWAY_TESTNET_FACILITATOR } from "./x402.js";
 import { consumeKey } from "./oracleKeys.js";
+import { mountAccount } from "./oracleAccount.js";
 
 const PORT = Number(process.env.ORACLE_PORT ?? 8791);
 const UPSTREAM = process.env.ORACLE_UPSTREAM ?? `http://localhost:${process.env.NODE_PORT ?? 8790}`;
@@ -57,6 +58,9 @@ gateway.onProtectedRequest(async (ctx) => {
   const key = (ctx.getHeader("x-api-key") || (ctx.getHeader("authorization") || "").replace(/^Bearer\s+/i, "")) as string;
   if (consumeKey(key)) return { grantAccess: true };
 });
+
+// Dashboard: /oracle/account/* — wallet sign-in + owner-scoped API keys (free, not gated).
+mountAccount(app);
 
 // GET /oracle/:addr — paid. Returns a standardised credit tier for an agent address.
 // Unpaid requests get a 402 with payment requirements; a paid request gets the payload.
