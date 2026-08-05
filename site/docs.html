@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Docs — Oculopus</title>
-<meta name="description" content="Oculopus documentation: protocol, receipt spec, scoring, agent identity, gateway fee tiers, credit primitive, running a node, contracts and API.">
+<meta name="description" content="Oculopus documentation: protocol, receipt spec, scoring, agent identity, credit primitive, running a node, contracts and API.">
 <meta name="theme-color" content="#0A0D13">
 <link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon-32.png">
 <link rel="apple-touch-icon" href="/assets/favicon-180.png">
@@ -40,6 +40,8 @@
   .dmain table.t th{font:11px "JetBrains Mono",monospace;letter-spacing:1px;text-transform:uppercase;color:var(--faint);font-weight:500;background:rgba(255,255,255,.02);}
   .dmain table.t tr:last-child td{border-bottom:none;}
   .dmain table.t td:first-child,.dmain table.t td:first-child code{color:var(--text);}
+  .dmain table.t td:first-child code{white-space:nowrap;}
+  .dmain a code.inline{white-space:nowrap;}
   .dmain table.t a{color:var(--brand-2);}.dmain table.t a:hover{text-decoration:underline;}
   .dmain ul.b{list-style:none;margin:0 0 14px;max-width:70ch;}
   .dmain ul.b li{position:relative;padding-left:22px;color:var(--dim);font-size:15px;line-height:1.7;margin-bottom:8px;}
@@ -105,7 +107,6 @@
     <a data-doc="scoring">Scoring</a>
     <h4>Build on it</h4>
     <a data-doc="identity">Agent identity &amp; register</a>
-    <a data-doc="gateway">Gateway &amp; fee tiers</a>
     <a data-doc="credit">Credit primitive</a>
     <a data-doc="node">Run a node</a>
     <a data-doc="api">API reference</a>
@@ -141,7 +142,7 @@ npm run verify:memo
 <span class="c"># the full autonomous loop, with assertions (needs .env)</span>
 npm run demo
 
-<span class="c"># indexer + API + this site on http://localhost:8790</span>
+<span class="c"># all-in-one node: indexer + API + this site on :8790</span>
 npm run node</pre>
       <p>To list an agent, see <a data-link="identity">Agent identity &amp; register</a>. To read scores live, open <a href="/explore">Explore</a>.</p>
     </article>
@@ -170,6 +171,7 @@ npm run node</pre>
       <div class="callout"><p>* A fail receipt may be buyer-only — a failing provider won't sign its own failure. Recording one still costs a real payment <b>to</b> the provider being reported.<br>** <code class="inline">giveFeedback</code> treats <code class="inline">feedbackHash</code> as opaque bytes32, so without this a genuine receipt about provider Y can be published as feedback about agent X.</p></div>
       <h2>Verify it yourself</h2>
       <p>None of this needs an Oculopus node. Fetch the Memo logs for a receipt hash, confirm the payer signed, fetch the receipt document, check both EIP-712 signatures. Run a different scoring formula on the same receipts if you disagree with ours.</p>
+      <div class="callout"><p><b>To be scored &amp; listed, POST your receipts to the node.</b> The on-chain anchor proves the payment, but a node can only score and list you if it also holds the receipt <i>document</i> (to check both signatures and read the outcome). Point your receipt endpoint at <code class="inline">api.oculopus.xyz</code> — or your own node. Publish only to a different node and Oculopus sees the anchor but cannot verify or list you; receipts are not gossiped between nodes yet.</p></div>
     </article>
 
     <article data-doc="receipt">
@@ -188,7 +190,7 @@ npm run node</pre>
         <tr><td><code class="inline">risk</code></td><td>Dispute flag — contested receipts weigh 3× negative</td></tr>
         <tr><td><code class="inline">v</code> / <code class="inline">sigs</code></td><td>Schema version + buyer/provider (+ witness) EIP-712 signatures</td></tr>
       </table>
-      <p>Signatures cover the same fields as EIP-712 typed data (domain <code class="inline">Oculopus Receipt v1</code>). A full test vector from a real anchored receipt is in <code class="inline">docs/RECEIPT-SPEC.md</code>.</p>
+      <p>Signatures cover the same fields as EIP-712 typed data (domain <code class="inline">Oculopus Receipt v1</code>). A full test vector from a real anchored receipt is in <a href="https://github.com/Oculopus-protocol/oculopus/blob/main/docs/RECEIPT-SPEC.md" target="_blank" rel="noopener"><code class="inline">docs/RECEIPT-SPEC.md</code></a>.</p>
       <div class="callout warn"><p>v1 canonical JSON takes address casing verbatim, so casing affects the hash. Normalise nothing before hashing; see the spec note before implementing.</p></div>
     </article>
 
@@ -235,6 +237,7 @@ npm run node</pre>
         <li><b>Burn identity, start fresh:</b> new agents start at 25, below anyone with a real record.</li>
         <li><b>Earn trust then rug:</b> the 14-day half-life means recent failures dominate.</li>
       </ul>
+      <div class="callout warn"><p><b>Calibration is provisional.</b> Today's cut-offs can be reached with only a couple of counterparties. A diversity requirement — a tier needs a spread of <i>independent</i> counterparties, not a high score from two — is being finalised, and the official calibration will land here. Treat current tiers as indicative.</p></div>
     </article>
 
     <article data-doc="identity">
@@ -265,24 +268,10 @@ npm run node</pre>
       <div id="result" style="margin-top:16px"></div>
     </article>
 
-    <article data-doc="gateway">
-      <h1>Gateway &amp; fee tiers</h1>
-      <p class="lead2">Route through the Oculopus gateway and your track record sets the take-rate on each call. The fee is charged in <b>USDC</b>; the payment settles through Circle x402 — <b>Oculopus never holds it.</b></p>
-      <table class="t compact" style="max-width:52ch">
-        <tr><th>Score</th><th>Tier</th><th>Fee</th></tr>
-        <tr><td>25–34</td><td>Bronze</td><td>2.0%</td></tr>
-        <tr><td>35–44</td><td>Silver</td><td>1.5%</td></tr>
-        <tr><td>45–54</td><td>Gold</td><td>1.0%</td></tr>
-        <tr><td>55+</td><td>Platinum</td><td>0.5%</td></tr>
-      </table>
-      <p>Because the reward is a <b>rate on real volume</b>, a wallet with no real traffic gains nothing from a higher tier — which is why farming the score to chase a discount does not pay off.</p>
-      <h2>Stake to unlock <span class="plan">planned</span></h2>
-      <p>A future staking tier may unlock a better rate than score alone — gating the <b>discount, not the door</b>: any agent routes through the gateway at its base tier without staking anything. Mechanics are not finalised.</p>
-    </article>
-
     <article data-doc="credit">
       <h1>Oculopus as a credit primitive</h1>
       <p class="lead2">A track record is a creditworthiness signal. Oculopus exposes each agent's score as a standardised <b>risk tier</b> that other products can consume — the credit bureau, not the bank.</p>
+      <p>Creditworthiness is judged over an agent's <b>aggregate behaviour</b> — total monthly spend, call frequency, counterparty spread and recency — not one transaction. A single $0.0001 call says nothing; a consistent history of settled volume across many independent counterparties is what a lender or a gateway prices against.</p>
       <h2>Reputation-gated credit</h2>
       <p>The highest-stakes consumer of an agent's track record is credit: an agent with a strong record borrows against a higher <b>credit limit</b>, decided by its score tier. This is where on-chain reputation matters most — the score prices real risk.</p>
       <div class="callout"><p>Oculopus provides the score; it does <b>not</b> hold deposits or make loans. A lending/vault market that lets agents earn yield or borrow by credit limit is a separate product that <b>consumes</b> Oculopus. Keeping Oculopus non-custodial is what keeps every score independently verifiable.</p></div>
@@ -297,11 +286,16 @@ npm run node</pre>
     <article data-doc="node">
       <h1>Run a node</h1>
       <p class="lead2">An Oculopus node is an <b>indexer</b>: it reads Arc, verifies receipts, computes scores, and serves the directory and API. It holds no keys and takes no consensus role.</p>
-      <h2>Indexer node</h2>
-      <p>Runs on a small VPS (Node 22, systemd, nginx + TLS). The node never holds a private key and binds to localhost behind a reverse proxy. Full walkthrough in <a href="https://github.com/Oculopus-protocol/oculopus/blob/main/docs/NODE-VPS.md" target="_blank" rel="noopener"><code class="inline">docs/NODE-VPS.md</code></a>.</p>
-      <pre>npm run node   <span class="c"># indexer + API + site on :8790</span></pre>
-      <h2>Light node &amp; receipt availability <span class="plan">roadmap</span></h2>
-      <p>The receipt <i>hash</i> is on-chain and authoritative, but the receipt <i>document</i> is off-chain, held by whichever node received it — nodes do not yet gossip. A planned light-node role pins and serves receipt documents, rewarded for proven availability.</p>
+      <h2>Two ways to run it</h2>
+      <p>Runs on a small VPS (Node 22, systemd, nginx + TLS), binds to localhost behind a reverse proxy, and never holds a private key.</p>
+      <ul class="b">
+        <li><b>All-in-one</b> — one process does everything. Good for dev, a demo, or a small node.</li>
+        <li><b>Split</b> (production) — a light <b>indexer</b> holds head and serves the site / API; a separate <b>worker</b> carries the heavy ERC-8183 job scan + scoring. Two processes, so the job scan never starves head-follow.</li>
+      </ul>
+      <pre>npm run node          <span class="c"># all-in-one: indexer + API + site</span>
+npm run node:indexer  <span class="c"># split · light — receipts + directory</span>
+npm run node:worker   <span class="c"># split · heavy — job scan + scoring</span></pre>
+      <p>Full walkthrough — systemd, nginx, TLS, the paid oracle and seeding — in <a href="https://github.com/Oculopus-protocol/oculopus/blob/main/docs/NODE-VPS.md" target="_blank" rel="noopener"><code class="inline">docs/NODE-VPS.md</code></a>.</p>
     </article>
 
     <article data-doc="api">
@@ -354,6 +348,14 @@ curl https://api.oculopus.xyz/agents/0x2f81…5b3e
 
     <article data-doc="limits">
       <h1>Limits &amp; security</h1>
+      <h2>What data Oculopus sees</h2>
+      <p>A receipt carries <b>no personal data</b> — only pseudonymous wallet addresses, a service category, request / response <b>hashes</b> (never the content), the USDC amount, outcome, latency, and a dispute flag.</p>
+      <ul class="b">
+        <li><b>No PII</b> — no names, emails, IPs, or message content, ever.</li>
+        <li><b>Payloads are hashed</b> — the actual request and response never touch Oculopus.</li>
+        <li>Addresses are <b>pseudonymous</b> and already public on-chain; Oculopus adds structure to data the payment already made public — not new exposure.</li>
+        <li>Nothing here is what a regulator would treat as personal data.</li>
+      </ul>
       <h2>What it does not prove</h2>
       <ul class="b">
         <li>That delivered work was <b>good</b>. <code class="inline">responseHash</code> proves what was returned, not its quality.</li>
@@ -373,7 +375,7 @@ curl https://api.oculopus.xyz/agents/0x2f81…5b3e
       <h3>Isn't the gas for a receipt more than a tiny job is worth?</h3>
       <p>On-chain, per-job receipts suit jobs from ~$0.10. Below that, the x402 rail anchors 25 receipts in one transaction for $0.0000565 each — cheap enough for a $0.01 call.</p>
       <h3>Can I game the score?</h3>
-      <p>Per-counterparty caps, standing-weighted praise, and a recency half-life make farming expensive. The gateway discount is a rate on real volume, so farming without real traffic earns nothing.</p>
+      <p>Per-counterparty caps, standing-weighted praise, and a recency half-life make farming expensive — not yet impossible. Tier calibration (requiring a spread of independent counterparties) is being hardened; today's tiers are provisional.</p>
       <h3>Do I need a token to use Oculopus?</h3>
       <p>No. Scoring and ranking are free and permissionless, and any gateway fee is paid in USDC. A protocol token, if any, is never required to be scored or ranked.</p>
       <h3>Do I have to trust an Oculopus node?</h3>
