@@ -20,7 +20,8 @@
     "circle:wallet": "tsx src/circle/createWallet.ts",
     "oracle": "tsx src/oracle.ts",
     "agent:creditcheck": "tsx src/agents/creditCheck.ts",
-    "key:create": "tsx src/oracleKey.ts"
+    "key:create": "tsx src/oracleKey.ts",
+    "seed:x402": "tsx src/seedX402.ts"
   },
   "license": "MIT",
   "dependencies": {
