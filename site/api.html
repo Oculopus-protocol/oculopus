@@ -51,9 +51,16 @@
   table.keys{width:100%;border-collapse:collapse}
   table.keys th{font:9.5px "JetBrains Mono",monospace;letter-spacing:1px;text-transform:uppercase;color:var(--faint);text-align:left;padding:0 8px 9px 0;font-weight:600}
   table.keys td{font-size:12.5px;color:var(--text);padding:10px 8px 10px 0;border-top:1px solid var(--line)}
-  table.keys td.k{font:12px "JetBrains Mono",monospace;color:var(--dim)}
+  table.keys td.k{font:12px "JetBrains Mono",monospace;color:var(--dim);white-space:nowrap}
+  table.keys td.dt{font:12px "JetBrains Mono",monospace;color:var(--dim)}
   table.keys td.num{font:12px "JetBrains Mono",monospace;text-align:right;color:var(--dim)}
   table.keys th.rt{text-align:right}
+  .kcopy{background:none;border:none;color:var(--faint);cursor:pointer;padding:0;margin-left:9px;width:15px;height:15px;vertical-align:middle;display:inline-flex;align-items:center;justify-content:center;font-size:12px}
+  .kcopy:hover{color:var(--accent-2)}
+  .kcopy.ok{color:var(--good)}
+  .kcopy svg{width:13px;height:13px;display:block}
+  @keyframes freshrow{from{background:rgba(90,200,160,.14)}to{background:transparent}}
+  table.keys tr.fresh td{animation:freshrow 1.8s ease-out}
   .rev{font:10px "JetBrains Mono",monospace;color:var(--faint);border:1px solid var(--line);padding:3px 9px;cursor:pointer}
   .rev:hover{color:var(--bad);border-color:var(--bad)}
   .kdot{display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--good);margin-right:8px;vertical-align:middle}
@@ -73,6 +80,14 @@
   .cur{font:8.5px "JetBrains Mono",monospace;letter-spacing:1px;text-transform:uppercase;color:var(--good);border:1px solid var(--good);padding:1px 6px}
   .pl{font:8.5px "JetBrains Mono",monospace;letter-spacing:1px;text-transform:uppercase;color:var(--faint);border:1px dashed var(--line-2);padding:1px 6px}
   .mo{margin-left:auto;font:11px "JetBrains Mono",monospace;color:var(--faint)}
+
+  /* site-themed dialog (replaces native prompt/confirm) */
+  .dlg-body{font:12px "JetBrains Mono",monospace;color:var(--dim);line-height:1.55;margin:0}
+  .dlg-input{width:100%;font:13px "JetBrains Mono",monospace;color:var(--text);background:var(--bg-2);border:1px solid var(--line-2);padding:11px 12px;outline:none;box-sizing:border-box;margin-top:14px;letter-spacing:.3px}
+  .dlg-input:focus{border-color:var(--accent)}
+  .dlg-actions{display:flex;gap:8px;justify-content:flex-end;align-items:center;margin-top:20px}
+  .launch.danger{background:var(--bad);color:#fff}
+  .launch.danger:hover{background:var(--bad);filter:brightness(1.12)}
 </style>
 </head>
 <body>
@@ -168,6 +183,19 @@
   </div>
 </div>
 
+<!-- prompt / confirm dialog (site-themed) -->
+<div class="mback" id="dlg" hidden>
+  <div class="mcard" style="max-width:380px">
+    <h3 class="mtitle" id="dlgTitle"></h3>
+    <div class="dlg-body" id="dlgBody" hidden></div>
+    <input class="dlg-input" id="dlgInput" spellcheck="false" autocomplete="off" hidden>
+    <div class="dlg-actions">
+      <button class="lnk" id="dlgCancel" type="button">Cancel</button>
+      <button class="launch" style="--cham:7px" id="dlgOk" type="button">OK</button>
+    </div>
+  </div>
+</div>
+
 <script>
 const $ = id => document.getElementById(id);
 const dash = $("dash"), gate = $("gate"), pill = $("pill"), acct = $("acct"), gnote = $("gnote"), modal = $("authModal");
@@ -176,9 +204,47 @@ const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": 
 // Account API lives with the oracle, proxied at /oracle/account/* on the node host.
 const ACCT = (window.OC_API || "") + "/oracle/account";
 let TOKEN = localStorage.getItem("oc-token") || "";
+let freshKey = ""; // full text of a just-created key → highlight its row once
+const copyIcon = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="11" height="11" rx="1.5"/><path d="M6 15H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v1"/></svg>';
+const mask = k => k.slice(0, 8) + "••••" + k.slice(-4);
 
 function note(msg, err) { gnote.textContent = msg || ""; gnote.classList.toggle("err", !!err); }
 function dnote(html) { $("dnote").innerHTML = html || ""; }
+
+// Promise-based prompt/confirm styled to the site (replaces window.prompt / confirm).
+// input:true → resolves the typed string (or null on cancel); otherwise → true / false.
+function dialog({ title, body = "", input = false, value = "", ok = "OK", danger = false }) {
+  return new Promise(resolve => {
+    const back = $("dlg"), inp = $("dlgInput"), okBtn = $("dlgOk"), cancel = $("dlgCancel");
+    $("dlgTitle").textContent = title;
+    $("dlgBody").innerHTML = body; $("dlgBody").hidden = !body;
+    inp.hidden = !input; if (input) inp.value = value;
+    okBtn.textContent = ok; okBtn.classList.toggle("danger", danger);
+    back.hidden = false;
+    if (input) setTimeout(() => { inp.focus(); inp.select(); }, 0);
+    const finish = v => {
+      back.hidden = true;
+      okBtn.removeEventListener("click", onOk); cancel.removeEventListener("click", onCancel);
+      inp.removeEventListener("keydown", onKey); back.removeEventListener("click", onBack);
+      removeEventListener("keydown", onEsc);
+      resolve(v);
+    };
+    const onOk = () => finish(input ? inp.value : true);
+    const onCancel = () => finish(input ? null : false);
+    const onKey = e => { if (e.key === "Enter") { e.preventDefault(); onOk(); } };
+    const onBack = e => { if (e.target === back) onCancel(); };
+    const onEsc = e => { if (e.key === "Escape") onCancel(); };
+    okBtn.addEventListener("click", onOk); cancel.addEventListener("click", onCancel);
+    inp.addEventListener("keydown", onKey); back.addEventListener("click", onBack);
+    addEventListener("keydown", onEsc);
+  });
+}
+async function copyKey(btn) {
+  try { await navigator.clipboard.writeText(btn.dataset.copy); } catch { return; }
+  const svg = btn.innerHTML;
+  btn.textContent = "✓"; btn.classList.add("ok");
+  setTimeout(() => { btn.innerHTML = svg; btn.classList.remove("ok"); }, 1100);
+}
 
 function resetModal() { $("wopts").hidden = false; $("emailForm").hidden = true; $("otpForm").hidden = true; note(""); }
 function openModal() { resetModal(); modal.hidden = false; }
@@ -223,32 +289,36 @@ async function loadKeys() {
 }
 function renderKeys(keys) {
   $("keyRows").innerHTML = keys.length ? keys.map(k => `
-    <tr>
+    <tr${k.key === freshKey ? ' class="fresh"' : ""}>
       <td><span class="kdot"></span>${esc(k.label)}</td>
-      <td class="k">${esc(k.key.slice(0, 8) + "••••" + k.key.slice(-4))}</td>
-      <td class="num">${new Date(k.created_at).toISOString().slice(0, 10)}</td>
+      <td class="k">${esc(mask(k.key))}<button class="kcopy" data-copy="${esc(k.key)}" title="Copy key" aria-label="Copy key">${copyIcon}</button></td>
+      <td class="dt">${new Date(k.created_at).toISOString().slice(0, 10)}</td>
       <td class="num">${(k.used || 0).toLocaleString()}</td>
       <td><span class="rev" data-key="${esc(k.key)}">Revoke</span></td>
     </tr>`).join("") : `<tr><td colspan="5" style="padding:14px 0;font:12px 'JetBrains Mono',monospace;color:var(--faint)">No keys yet — create one to start.</td></tr>`;
+  freshKey = "";
   $("keyRows").querySelectorAll(".rev").forEach(b => b.addEventListener("click", () => revoke(b.dataset.key)));
+  $("keyRows").querySelectorAll(".kcopy").forEach(b => b.addEventListener("click", () => copyKey(b)));
   const used = keys.reduce((s, k) => s + (k.used || 0), 0);
   const limit = keys.reduce((s, k) => Math.max(s, k.monthly_limit || 0), 10000) || 10000;
   $("usageBar").style.width = Math.min(100, used / limit * 100) + "%";
   $("usageText").textContent = `${used.toLocaleString()} / ${limit.toLocaleString()} requests this month · ${keys.length} key${keys.length === 1 ? "" : "s"}`;
 }
 async function createKey() {
-  const label = prompt("Name this key:", "my-app");
+  const label = await dialog({ title: "Name this key", input: true, value: "my-app", ok: "Create key" });
   if (label === null) return;
   dnote("Creating…");
   try {
-    const r = await fetch(`${ACCT}/keys`, { method: "POST", headers: { "content-type": "application/json", authorization: "Bearer " + TOKEN }, body: JSON.stringify({ label }) });
+    const r = await fetch(`${ACCT}/keys`, { method: "POST", headers: { "content-type": "application/json", authorization: "Bearer " + TOKEN }, body: JSON.stringify({ label: label || "key" }) });
     if (!r.ok) return dnote("// create failed (" + r.status + ")");
-    dnote(`New key — copy now, shown once: <code style="color:var(--accent-2)">${esc((await r.json()).key)}</code>`);
+    freshKey = (await r.json()).key; // highlights its row and enables the copy button
+    dnote("");
     loadKeys();
   } catch { dnote("// could not reach the account API"); }
 }
 async function revoke(key) {
-  if (!confirm("Revoke this key? Calls using it will start paying per request.")) return;
+  const ok = await dialog({ title: "Revoke key?", body: 'Calls using this key will start paying per request via <b style="color:var(--text)">x402</b>.', ok: "Revoke", danger: true });
+  if (!ok) return;
   try { await fetch(`${ACCT}/keys/${encodeURIComponent(key)}`, { method: "DELETE", headers: { authorization: "Bearer " + TOKEN } }); loadKeys(); }
   catch { dnote("// could not reach the account API"); }
 }
