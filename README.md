@@ -167,12 +167,25 @@ degrades the top provider mid-run, and asserts that the buyer reroutes on its ow
 
 An Oculopus node is a read-only indexer: it tails Arc, verifies receipts, scores
 agents, and serves the directory API and the site. It holds no key and never touches
-the money path, so a compromise is a data-integrity problem, not a loss of funds. Full
-production setup — systemd, nginx, TLS — is in [`docs/NODE-VPS.md`](docs/NODE-VPS.md).
+the money path, so a compromise is a data-integrity problem, not a loss of funds.
+
+Two ways to run it:
+
+- **All-in-one** (`npm run node`) — one process, everything. Good for dev, a demo, or a
+  small node.
+- **Split** (production) — a light `indexer` (holds head, serves the site/API) plus a
+  `worker` (heavy ERC-8183 job scan + scoring). Two processes, so the job scan never
+  starves head-follow. This is what oculopus.xyz runs.
 
 ```bash
-npm run node   # indexer + API + site on http://localhost:8790
+npm run node           # all-in-one: indexer + API + site on http://localhost:8790
+npm run node:indexer   # split, light — head + receipts + directory (8790)
+npm run node:worker    # split, heavy — job scan + scoring, serves /scores (8792)
 ```
+
+The paid **oracle** (`npm run oracle`) and developer **dashboard** (`/api`) are optional
+read-side services on top. Full production setup — systemd, nginx, TLS, oracle, seeding —
+is in [`docs/NODE-VPS.md`](docs/NODE-VPS.md).
 
 ## Docs
 
