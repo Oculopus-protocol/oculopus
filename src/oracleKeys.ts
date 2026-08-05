@@ -35,13 +35,23 @@ export function mintKey(label = "default", limit = FREE_LIMIT): string {
  */
 export function consumeKey(key: string | null | undefined): boolean {
   if (!key) return false;
-  const row = db.prepare("SELECT month, used, monthly_limit FROM api_keys WHERE key=?").get(key) as
-    | { month: string; used: number; monthly_limit: number }
+  const row = db.prepare("SELECT owner, month, used, monthly_limit FROM api_keys WHERE key=?").get(key) as
+    | { owner: string | null; month: string; used: number; monthly_limit: number }
     | undefined;
   if (!row) return false;
   const month = ym();
   if (row.month !== month) { db.prepare("UPDATE api_keys SET month=?, used=0 WHERE key=?").run(month, key); row.used = 0; }
-  if (row.used >= row.monthly_limit) return false;
+  // The free quota is per WALLET, not per key — minting extra keys must not multiply it.
+  // Sum this month's usage across every key the owner holds; keyless admin keys (owner NULL,
+  // minted by CLI) keep their own per-key limit.
+  if (row.owner) {
+    const { total } = db.prepare(
+      "SELECT COALESCE(SUM(used),0) AS total FROM api_keys WHERE owner=? AND month=?",
+    ).get(row.owner, month) as { total: number };
+    if (total >= row.monthly_limit) return false;
+  } else if (row.used >= row.monthly_limit) {
+    return false;
+  }
   db.prepare("UPDATE api_keys SET used = used + 1 WHERE key=?").run(key);
   return true;
 }
