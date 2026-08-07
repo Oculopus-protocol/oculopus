@@ -10,44 +10,52 @@
 <link rel="apple-touch-icon" href="/assets/favicon-180.png">
 <link rel="stylesheet" href="/assets/oculopus.css">
 <script src="/assets/site.js"></script>
+<script src="/assets/demo.js"></script>
 <style>
   .gwrap{height:calc(100vh - 64px);overflow:hidden;padding-top:12px}
   .gpage{height:100%;display:flex;flex-direction:column;padding:0 20px}
   .gtop{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-bottom:12px}
-  .gtop input{flex:0 1 440px;min-width:200px;font:13px "JetBrains Mono",monospace;color:var(--text);background:var(--surface);border:1px solid var(--line-2);padding:9px 12px;outline:none}
+  .gtop input{flex:0 1 440px;min-width:200px;font:13px "Overpass Mono",monospace;color:var(--text);background:var(--bg);border:1px solid var(--line-2);border-radius:10px;padding:9px 15px;height:40px;outline:none}
   .gtop input:focus{border-color:var(--accent)}
   .ggrid{flex:1;min-height:0;display:grid;grid-template-columns:250px minmax(0,1fr) 290px;gap:14px}
   @media(max-width:1000px){.ggrid{grid-template-columns:1fr;grid-template-rows:auto minmax(0,1fr) auto}}
-  .gside{border:1px solid var(--line);background:var(--surface);display:flex;flex-direction:column;min-height:0;overflow:hidden}
+  .gside{position:relative;border:1px solid var(--line);border-radius:12px;background:rgba(255,255,255,.015);display:flex;flex-direction:column;min-height:0;overflow:hidden}
+  .gs-x{position:absolute;top:8px;right:8px;z-index:3;width:22px;height:22px;border:1px solid var(--line-2);border-radius:6px;background:var(--surface);color:var(--dim);cursor:pointer;font-size:11px;display:none;align-items:center;justify-content:center}
+  .gs-x:hover{color:var(--text);background:var(--surface-2)}
+  #focusPanel.has-focus .gs-x{display:flex}
+  #focusPanel.has-focus .body{padding-top:42px}
+  .gav{width:34px;height:34px;flex:none;border-radius:6px;overflow:hidden;display:inline-flex;align-items:center;justify-content:center;background:linear-gradient(155deg,var(--surface),var(--bg-2));border:1px solid var(--line);color:var(--dim)}
+  .gav svg{width:19px;height:19px}.gav img{width:100%;height:100%;object-fit:cover}
+  .gs-id{display:flex;align-items:center;gap:10px;margin-bottom:2px}
   .gside .body{padding:16px 18px;overflow-y:auto;min-height:0;flex:1;scrollbar-width:none}
   .gside .body::-webkit-scrollbar{display:none}
   .gs-head{display:flex;align-items:baseline;justify-content:space-between;gap:8px}
   .gs-head h3{font-size:15px}
-  .gs-head .sc{font:600 20px "JetBrains Mono",monospace;letter-spacing:-.5px}
-  .gs-sub{font:11px "JetBrains Mono",monospace;color:var(--faint);margin:2px 0 12px}
-  .kv{display:flex;justify-content:space-between;gap:10px;font:12px "JetBrains Mono",monospace;padding:7px 0;border-bottom:1px solid var(--line)}
+  .gs-head .sc{font:600 20px "Overpass Mono",monospace;letter-spacing:-.5px}
+  .gs-sub{font:11px "Overpass Mono",monospace;color:var(--faint);margin:2px 0 12px}
+  .kv{display:flex;justify-content:space-between;gap:10px;font:12px "Overpass Mono",monospace;padding:7px 0;border-bottom:1px solid var(--line)}
   .kv:last-child{border-bottom:none}.kv span:first-child{color:var(--dim)}
-  .sect{font:9px "JetBrains Mono",monospace;letter-spacing:1.5px;text-transform:uppercase;color:var(--faint);margin:16px 0 6px}
+  .sect{font:9px "Overpass Mono",monospace;letter-spacing:1.5px;text-transform:uppercase;color:var(--faint);margin:16px 0 6px}
   .hint2{color:var(--faint);font-size:11.5px;line-height:1.6}
   .empty2{color:var(--faint);font-size:12px;line-height:1.6}
-  .stage{position:relative;border:1px solid var(--line);background:radial-gradient(120% 120% at 50% 40%,#0d1220,#080b11);min-height:0;overflow:hidden}
+  .stage{position:relative;border:1px solid var(--line);border-radius:12px;background:radial-gradient(120% 120% at 50% 40%,#0f1116,#08090c);min-height:0;overflow:hidden}
   .stage svg{display:block;width:100%;height:100%}
   .gnode{cursor:pointer}
-  .glabel{font:9.5px "JetBrains Mono",monospace;fill:var(--dim);pointer-events:none}
+  .glabel{font:9.5px "Overpass Mono",monospace;fill:var(--dim);pointer-events:none}
   .glabel.f{fill:var(--accent-2);font-size:11px}
-  .ghelp{position:absolute;right:12px;top:12px;font:10px "JetBrains Mono",monospace;color:var(--faint)}
-  .gtip{position:absolute;pointer-events:none;background:var(--surface-2);border:1px solid var(--line-2);padding:8px 11px;font:10.5px "JetBrains Mono",monospace;color:var(--text);line-height:1.6;opacity:0;transition:opacity .12s;z-index:5;white-space:nowrap;transform:translateY(-100%)}
+  .ghelp{position:absolute;right:12px;top:12px;font:10px "Overpass Mono",monospace;color:var(--faint)}
+  .gtip{position:absolute;pointer-events:none;background:var(--surface-2);border:1px solid var(--line-2);padding:8px 11px;font:10.5px "Overpass Mono",monospace;color:var(--text);line-height:1.6;opacity:0;transition:opacity .12s;z-index:5;white-space:nowrap;transform:translateY(-100%)}
   .gmid{display:flex;flex-direction:column;min-height:0;gap:10px}
   .gmid .stage{flex:1;min-height:0}
   .gmode{position:absolute;left:12px;top:12px;display:flex;gap:2px;z-index:5}
-  .gmode button{font:9.5px "JetBrains Mono",monospace;letter-spacing:.5px;text-transform:uppercase;color:var(--dim);background:var(--surface);border:1px solid var(--line-2);padding:5px 11px;cursor:pointer}
+  .gmode button{font:9.5px "Overpass Mono",monospace;letter-spacing:.5px;text-transform:uppercase;color:var(--dim);background:var(--surface);border:1px solid var(--line-2);padding:5px 11px;cursor:pointer}
   .gmode button.on{color:var(--brand-ink);background:var(--accent);border-color:var(--accent)}
-  .glegend{display:flex;gap:14px;flex-wrap:wrap;align-items:center;border:1px solid var(--line);background:var(--bg-2);padding:7px 14px;font:10px "JetBrains Mono",monospace;color:var(--dim)}
+  .glegend{display:flex;gap:14px;flex-wrap:wrap;align-items:center;border:1px solid var(--line);border-radius:10px;background:var(--bg-2);padding:7px 14px;font:10px "Overpass Mono",monospace;color:var(--dim)}
   .glegend .lg{display:inline-flex;align-items:center;gap:6px}
   .glegend .lg.d{color:var(--faint)}
   .glegend .dot{width:9px;height:9px;border-radius:50%;display:inline-block}
   .cplist{margin-top:6px}
-  .cprow{display:grid;grid-template-columns:1fr 44px auto;gap:8px;align-items:center;padding:7px 2px;border-bottom:1px solid var(--line);cursor:pointer;font:11px "JetBrains Mono",monospace}
+  .cprow{display:grid;grid-template-columns:1fr 44px auto;gap:8px;align-items:center;padding:7px 2px;border-bottom:1px solid var(--line);cursor:pointer;font:11px "Overpass Mono",monospace}
   .cprow:hover,.cprow.sel{background:var(--surface-2)}
   .cpr-ad{color:var(--text);display:flex;align-items:center;gap:6px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   .cpr-dot{width:7px;height:7px;border-radius:50%;flex:none}
@@ -55,11 +63,11 @@
   .cpr-bar i{position:absolute;left:0;top:0;bottom:0;background:var(--accent)}
   .cpr-m{color:var(--dim);font-size:10px;white-space:nowrap;text-align:right}
   /* counterparty list — overlay inside the stage, collapsible by clicking its header */
-  .cpbox{position:absolute;right:12px;top:38px;width:262px;max-height:calc(100% - 52px);display:flex;flex-direction:column;background:rgba(11,15,22,.9);border:1px solid var(--line-2);z-index:4}
+  .cpbox{position:absolute;right:12px;top:38px;width:262px;max-height:calc(100% - 52px);display:flex;flex-direction:column;background:rgba(11,15,22,.9);border:1px solid var(--line-2);border-radius:10px;overflow:hidden;z-index:4}
   .cpbox .cph{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:9px 12px;cursor:pointer;border-bottom:1px solid var(--line);user-select:none}
   .cpbox .cph h4{font:600 12px "Space Grotesk",sans-serif;display:flex;align-items:center;gap:7px}
-  .cpbox .cph .n{font:9.5px "JetBrains Mono",monospace;color:var(--dim);border:1px solid var(--line-2);padding:0 5px}
-  .cpbox .cph .cv{font:10px "JetBrains Mono",monospace;color:var(--faint);transition:transform .2s}
+  .cpbox .cph .n{font:9.5px "Overpass Mono",monospace;color:var(--dim);border:1px solid var(--line-2);padding:0 5px}
+  .cpbox .cph .cv{font:10px "Overpass Mono",monospace;color:var(--faint);transition:transform .2s}
   .cpbox.collapsed .cpbody{display:none}
   .cpbox.collapsed .cph{border-bottom:none}
   .cpbox.collapsed .cph .cv{transform:rotate(-90deg)}
@@ -71,7 +79,7 @@
 <canvas id="dots"></canvas>
 
 <header><div class="wrap"><nav class="nav">
-  <a class="brand" href="/"><img src="/assets/logo-mark.png" alt="">Oculopus <span style="color:var(--faint);font-weight:500;font-size:11px;letter-spacing:2px;font-family:'JetBrains Mono',monospace">APP</span></a>
+  <a class="brand" href="/"><img src="/assets/logo-mark.png" alt="">Oculopus <span style="color:var(--faint);font-weight:500;font-size:11px;letter-spacing:2px;font-family:'Overpass Mono',monospace">APP</span></a>
   <div class="links">
     <a href="/explore">Explore</a><a class="on" href="/graph">Graph</a><a href="/api">API</a><a href="/network">Network</a>
   </div>
@@ -86,7 +94,7 @@
     <input id="q" placeholder="focus — name, 0x or id" autocomplete="off" spellcheck="false">
   </div>
   <div class="ggrid">
-    <aside class="gside"><div class="body" id="side"></div></aside>
+    <aside class="gside" id="focusPanel"><button class="gs-x" id="clearFocus" title="Close view" aria-label="Close">✕</button><div class="body" id="side"></div></aside>
     <div class="gmid">
       <div class="stage" id="stage">
         <svg id="svg" preserveAspectRatio="xMidYMid meet"></svg>
@@ -98,10 +106,9 @@
         <div class="gtip" id="gtip"></div>
       </div>
       <div class="glegend">
-        <span class="lg"><span class="dot" style="background:var(--accent)"></span>focus</span>
-        <span class="lg"><span class="dot" style="background:var(--surface-2);border:1px solid var(--accent-2)"></span>counterparty</span>
-        <span class="lg"><span class="dot" style="background:rgba(63,178,127,.4);border:1px solid var(--good)"></span>healthy</span>
-        <span class="lg"><span class="dot" style="background:rgba(229,72,77,.4);border:1px solid var(--bad)"></span>has failures</span>
+        <span class="lg"><span class="dot" style="background:var(--accent-2)"></span>focus agent</span>
+        <span class="lg"><span class="dot" style="background:rgba(63,178,127,.4);border:1px solid var(--good)"></span>counterparty · healthy</span>
+        <span class="lg"><span class="dot" style="background:rgba(229,72,77,.4);border:1px solid var(--bad)"></span>counterparty · has failures</span>
         <span class="lg d">node = volume · nearer centre = higher standing</span>
       </div>
     </div>
@@ -115,25 +122,52 @@ const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": 
 const short = a => a && a.length > 16 ? a.slice(0, 8) + "…" + a.slice(-4) : (a || "");
 const grade = s => s >= 45 ? "var(--brand)" : s < 30 ? "var(--bad)" : "var(--text)";
 
-const AGENTS = [
-  { address: "0x2f81ba0d7cc4e9a5301bb6f2a7e4419c8d0a5b3e", id: "712004", name: "orion-rerank", cat: "Reranking", score: 52.8, uniq: 9 },
-  { address: "0x9aec413ff42858eaf080af688b9a858396af1174", id: "851356", name: "atlas-embed", cat: "Embeddings", score: 46.4, uniq: 5 },
-  { address: "0xd18b06f4a3e952c7018df6b25a940c3e7f2158ab", id: "745210", name: "pyxis-ocr", cat: "OCR & document parsing", score: 44.7, uniq: 7 },
-  { address: "0x7e30c58a91bd46f2e8c7015a3d9b62f4081ca7d6", id: "690117", name: "corvus-llm", cat: "LLM inference", score: 33.2, uniq: 4 },
-];
-const byKey = k => { k = String(k).toLowerCase().trim(); return AGENTS.find(a => a.address === k || a.id === k || a.name === k) || AGENTS.find(a => a.address.includes(k) || a.name.includes(k)); };
+// The agent pool — providers + buyers. Loaded from the node when one is connected,
+// else from the shared demo dataset (the same agents the Explore leaderboard shows).
+// The counterparty graph is built over THIS pool, so every node is a real agent you
+// can search, click and walk to — the graph and the leaderboard stay in lockstep.
+let POOL = [];
+const nameOf = a => (a.metadataURI && /^https?:\/\/(?!127\.|localhost|0\.0\.0\.0|10\.|192\.168\.|172\.\d)/i.test(a.metadataURI)) ? a.metadataURI.replace(/^https?:\/\//, "").replace(/\/$/, "") : short(a.address);
+async function loadPool() {
+  if (API) {
+    const [d, bu] = await Promise.all([
+      fetch(API + "/directory").then(r => r.ok ? r.json() : null).catch(() => null),
+      fetch(API + "/buyers").then(r => r.ok ? r.json() : null).catch(() => null),
+    ]);
+    if (d && d.agents) {
+      const provs = d.agents.map(a => ({ address: a.address, id: a.agentId != null ? String(a.agentId) : "—", name: nameOf(a), cat: a.categoryLabel || "Agent", score: +a.score || 25, uniq: a.uniqueCounterparties || 6, role: "provider" }));
+      const buys = (bu && bu.buyers ? bu.buyers : []).map(x => ({ address: x.address, id: "—", name: short(x.address), cat: "Buyer", score: +x.score || 25, uniq: x.uniqueCounterparties || 4, role: "buyer" }));
+      POOL = provs.concat(buys);
+      if (POOL.length) return;
+    }
+  }
+  POOL = OC_DEMO.providers.map(o => ({ address: o.address, id: String(o.agentId), name: o.name, cat: o.categoryLabel, score: o.score, uniq: o.uniq, role: "provider" }))
+    .concat(OC_DEMO.buyers.map(o => ({ address: o.address, id: "—", name: o.name, cat: "Buyer", score: o.score, uniq: o.uniq, role: "buyer" })));
+}
+const byKey = k => { k = String(k).toLowerCase().trim(); if (!k) return null; return POOL.find(a => a.address === k || a.id === k || a.name === k) || POOL.find(a => a.address.includes(k) || (a.name && a.name.toLowerCase().includes(k))); };
+
+// default agent avatar — neutral gray/white robot mark (matches Explore)
+const AGENT_SVG = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="8" width="14" height="11" rx="2.5"/><path d="M12 4.6v3.4"/><circle cx="12" cy="3.5" r="1.15" fill="currentColor" stroke="none"/><circle cx="9.5" cy="13" r="1.15" fill="currentColor" stroke="none"/><circle cx="14.5" cy="13" r="1.15" fill="currentColor" stroke="none"/></svg>`;
+const avatarHtml = () => `<span class="gav">${AGENT_SVG}</span>`;
 
 function seeded(str) { let h = 2166136261; for (const c of str) { h ^= c.charCodeAt(0); h = Math.imul(h, 16777619); } return () => { h += 0x6D2B79F5; let t = Math.imul(h ^ h >>> 15, 1 | h); t ^= t + Math.imul(t ^ t >>> 7, 61 | t); return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
 
+// counterparties = real agents from the pool, chosen deterministically for this focus.
+// Per-edge stats are synthesised (the demo has no real edge list) but the nodes are the
+// same agents as the leaderboard, so clicking through the graph walks real identities.
 function buildNetwork(a) {
-  const rnd = seeded(a.address);
-  const n = Math.max(4, Math.min(a.uniq || 6, 11)), cps = [];
+  const rnd = seeded(a.address + "|net");
+  const others = POOL.filter(x => x.address !== a.address);
+  const shuffled = others.map(x => ({ x, k: rnd() })).sort((p, q) => p.k - q.k).map(o => o.x);
+  const n = Math.max(3, Math.min(a.uniq || 6, shuffled.length));
+  const cps = [];
   for (let i = 0; i < n; i++) {
-    const standing = 0.15 + rnd() * 0.85, receipts = 1 + Math.floor(rnd() * 6);
-    const fails = rnd() < 0.3 ? Math.max(1, Math.floor(receipts * rnd() * 0.5)) : 0;
-    cps.push({ id: "0x" + Math.floor(rnd() * 0xffffffff).toString(16).padStart(8, "0") + "…" + Math.floor(rnd() * 0xffff).toString(16).padStart(4, "0"),
-      name: "buyer-" + Math.floor(rnd() * 0xffff).toString(16).padStart(4, "0"),
-      standing, receipts, fails, success: receipts - fails, vol: +(receipts * (0.01 + rnd() * 0.9)).toFixed(3) });
+    const other = shuffled[i], r2 = seeded(a.address + other.address);
+    const receipts = 1 + Math.floor(r2() * 6);
+    const fails = r2() < 0.28 ? Math.max(1, Math.floor(receipts * r2() * 0.5)) : 0;
+    const standing = Math.max(0.12, Math.min(0.98, (other.score || 30) / 60));
+    cps.push({ id: other.address, address: other.address, name: other.name, score: other.score, cat: other.cat, agent: other,
+      standing, receipts, fails, success: receipts - fails, vol: +(receipts * (0.02 + r2() * 0.85)).toFixed(3) });
   }
   return cps;
 }
@@ -146,6 +180,7 @@ const el = (t, at) => { const e = document.createElementNS(NS, t); for (const k 
 function setFocus(a) {
   if (!a) return;
   focus = a; selected = null; document.getElementById("q").value = "";
+  document.getElementById("focusPanel").classList.add("has-focus");
   W = stage.clientWidth || 900; H = stage.clientHeight || 600;
   svg.setAttribute("viewBox", `0 0 ${W} ${H}`);
   const cx = W / 2, cy = H / 2;
@@ -198,7 +233,7 @@ function paint() {
 }
 
 function hi(n) {
-  for (const l of links) l.line.setAttribute("stroke", !n ? "rgba(255,255,255,.12)" : (l.t === n || l.s === n ? "rgba(91,157,255,.6)" : "rgba(255,255,255,.05)"));
+  for (const l of links) l.line.setAttribute("stroke", !n ? "rgba(255,255,255,.12)" : (l.t === n || l.s === n ? "rgba(255,255,255,.5)" : "rgba(255,255,255,.05)"));
   for (const nd of nodes) nd.circle.setAttribute("opacity", !n || nd === n || nd.focus ? "1" : ".4");
 }
 
@@ -220,7 +255,7 @@ addEventListener("pointerup", () => { if (drag && !drag.focus) drag.fixed = fals
 
 function showTip(n) {
   if (n.focus) { const a = n.data; tip.innerHTML = `<b>${esc(a.name)}</b> · ${a.score.toFixed(1)}<br>${links.length} counterparties · $${links.reduce((s, l) => s + l.t.data.vol, 0).toFixed(2)}`; }
-  else { const c = n.data, rate = Math.round(c.success / c.receipts * 100); tip.innerHTML = `<b>${esc(short(c.id))}</b><br>${c.receipts} receipts · ${rate}% ok<br>$${c.vol.toFixed(3)} · standing ${(c.standing * 100).toFixed(0)}`; }
+  else { const c = n.data, rate = Math.round(c.success / c.receipts * 100); tip.innerHTML = `<b>${esc(c.name || short(c.id))}</b><br>${c.receipts} receipts · ${rate}% ok<br>$${c.vol.toFixed(3)} · standing ${(c.standing * 100).toFixed(0)}`; }
   tip.style.left = Math.max(6, Math.min(W - 170, n.x + 14)) + "px";
   tip.style.top = (n.y - n.r - 8) + "px";
   tip.style.opacity = "1";
@@ -229,13 +264,15 @@ function hideTip() { tip.style.opacity = "0"; }
 
 function renderFocus() {
   const a = focus, tot = links.reduce((s, l) => s + l.t.data.vol, 0);
-  document.getElementById("side").innerHTML = `<div class="gs-head"><h3>${esc(a.name)}</h3><span class="sc" style="color:${grade(a.score)}">${a.score.toFixed(1)}</span></div>
-    <div class="gs-sub">${esc(a.cat)} · #${esc(a.id)}</div>
+  document.getElementById("side").innerHTML = `<div class="gs-id">${avatarHtml()}<div style="flex:1;min-width:0">
+      <div class="gs-head"><h3>${esc(a.name)}</h3><span class="sc" style="color:${grade(a.score)}">${a.score.toFixed(1)}</span></div>
+      <div class="gs-sub">${esc(a.cat)}${a.id && a.id !== "—" ? " · #" + esc(a.id) : ""}</div>
+    </div></div>
     <div class="kv"><span>Counterparties</span><b>${links.length}</b></div>
     <div class="kv"><span>Total volume</span><b>$${tot.toFixed(2)}</b></div>
     <div class="kv"><span>Healthy links</span><b>${links.filter(l => !l.bad).length} / ${links.length}</b></div>
     <div class="sect">How to read</div>
-    <p class="hint2">Click a counterparty node — its details appear on the right. Drag nodes, or search another agent to walk the graph.</p>`;
+    <p class="hint2">Every node is a real agent from the directory. Click a counterparty for its stats, then <b>focus it</b> to walk the graph — or search any agent above.</p>`;
 }
 
 // overlay inside the stage: ranked counterparty list (interaction with the focus agent)
@@ -247,7 +284,7 @@ function renderCounterparties() {
   document.getElementById("cpbody").innerHTML = rows.map(l => {
     const c = l.t.data, pct = (c.vol / tot * 100).toFixed(0);
     return `<div class="cprow" data-key="${esc(l.t.key)}" title="$${c.vol.toFixed(3)} · standing ${(c.standing * 100).toFixed(0)}">
-      <span class="cpr-ad"><span class="cpr-dot" style="background:${c.fails ? 'var(--bad)' : 'var(--good)'}"></span>${esc(short(c.id))}</span>
+      <span class="cpr-ad"><span class="cpr-dot" style="background:${c.fails ? 'var(--bad)' : 'var(--good)'}"></span>${esc(c.name || short(c.id))}</span>
       <span class="cpr-bar"><i style="width:${(c.vol / maxV * 100).toFixed(0)}%"></i></span>
       <span class="cpr-m">${pct}% · ${c.receipts}r</span>
     </div>`;
@@ -261,9 +298,12 @@ function renderCounterpartyDetail(c) {
   const tot = links.reduce((s, l) => s + l.t.data.vol, 0) || 1;
   const pct = (c.vol / tot * 100).toFixed(0);
   const bad = c.fails > 0;
+  const canFocus = !!c.agent;
   document.getElementById("side2").innerHTML =
-    `<div class="gs-head"><h3>${esc(short(c.id))}</h3><span class="sc" style="color:${bad ? 'var(--bad)' : 'var(--good)'}">${rate}%</span></div>
-     <div class="gs-sub">counterparty of ${esc(focus.name)}</div>
+    `<div class="gs-id">${avatarHtml()}<div style="flex:1;min-width:0">
+       <div class="gs-head"><h3>${esc(c.name || short(c.id))}</h3><span class="sc" style="color:${bad ? 'var(--bad)' : 'var(--good)'}">${rate}%</span></div>
+       <div class="gs-sub">counterparty of ${esc(focus.name)}</div>
+     </div></div>
      <div class="kv"><span>Receipts</span><b>${c.receipts}</b></div>
      <div class="kv"><span>Successful</span><b style="color:var(--good)">${c.success}</b></div>
      <div class="kv"><span>Failed</span><b style="color:${bad ? 'var(--bad)' : 'var(--text)'}">${c.fails}</b></div>
@@ -272,7 +312,9 @@ function renderCounterpartyDetail(c) {
      <div class="kv"><span>Standing</span><b>${(c.standing * 100).toFixed(0)}</b></div>
      <div class="kv"><span>Health</span><b style="color:${bad ? 'var(--bad)' : 'var(--good)'}">${bad ? 'has failures' : 'healthy'}</b></div>
      <div class="sect">Address</div>
-     <p class="hint2" style="word-break:break-all">${esc(c.id)}</p>`;
+     <p class="hint2" style="word-break:break-all">${esc(c.address || c.id)} <span class="addr-tag">ARC</span></p>
+     ${canFocus ? `<button class="btn ghost" id="focusCp" style="--cham:7px;font-size:12px;margin-top:12px;width:100%;justify-content:center">Focus this agent →</button>` : ""}`;
+  if (canFocus) document.getElementById("focusCp").addEventListener("click", () => setFocus(c.agent));
 }
 
 function selectNode(key) {
@@ -285,8 +327,25 @@ function selectNode(key) {
 
 document.getElementById("q").addEventListener("keydown", e => { if (e.key === "Enter") { const a = byKey(e.target.value); if (a) setFocus(a); } });
 document.getElementById("cph").addEventListener("click", () => document.getElementById("cpbox").classList.toggle("collapsed"));
+document.getElementById("clearFocus").addEventListener("click", clearFocus);
+function clearFocus() {
+  focus = null; selected = null;
+  if (raf) cancelAnimationFrame(raf); raf = null;
+  nodes = []; links = [];
+  svg.innerHTML = "";
+  document.getElementById("focusPanel").classList.remove("has-focus");
+  document.getElementById("cpn").textContent = "0";
+  document.getElementById("cpbody").innerHTML = "";
+  document.getElementById("side").innerHTML = '<div class="empty2">Search or pick an agent above to draw its counterparty graph.</div>';
+  document.getElementById("side2").innerHTML = '<div class="empty2">Click a counterparty to see its details &amp; stats.</div>';
+  document.getElementById("q").focus();
+}
 new ResizeObserver(() => { W = stage.clientWidth || W; H = stage.clientHeight || H; svg.setAttribute("viewBox", `0 0 ${W} ${H}`); if (nodes[0]) { nodes[0].x = W / 2; nodes[0].y = H / 2; alpha = Math.max(alpha, 0.4); } }).observe(stage);
-setFocus(AGENTS[0]);
+(async function boot() {
+  await loadPool();
+  const start = [...POOL].sort((a, b) => b.score - a.score)[0];
+  if (start) setFocus(start);
+})();
 </script>
 </body>
 </html>

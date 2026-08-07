@@ -14,46 +14,49 @@
   /* signed-out CTA */
   .gate-cta{margin:24px 0}
   .gate-cta p{margin-top:12px}
-  #acct{font:11px "JetBrains Mono",monospace;color:var(--dim);margin-right:12px}
+  #acct{font:11px "Overpass Mono",monospace;color:var(--dim);margin-right:12px}
 
   /* connect modal */
   .mback{position:fixed;inset:0;background:rgba(6,9,14,.72);backdrop-filter:blur(3px);display:flex;align-items:center;justify-content:center;z-index:50;padding:20px}
-  .mcard{position:relative;width:100%;max-width:400px;background:var(--surface);border:1px solid var(--line-2);padding:24px 24px 20px}
+  .mcard{position:relative;width:100%;max-width:400px;background:var(--surface);border:1px solid var(--line-2);border-radius:14px;padding:24px 24px 20px}
   .mx{position:absolute;top:10px;right:12px;background:none;border:none;color:var(--faint);font-size:22px;line-height:1;cursor:pointer}
   .mx:hover{color:var(--text)}
   .mtitle{font-size:16px;margin:0 0 16px}
   .wopts{display:flex;flex-direction:column;gap:10px}
-  .wopt{display:flex;align-items:center;gap:12px;width:100%;text-align:left;background:var(--bg-2);border:1px solid var(--line-2);color:var(--text);font:600 13px "Space Grotesk",sans-serif;padding:13px 15px;cursor:pointer;transition:border-color .15s,background .15s;--cham:8px;clip-path:polygon(var(--cham) 0,100% 0,100% calc(100% - var(--cham)),calc(100% - var(--cham)) 100%,0 100%,0 var(--cham))}
+  .wopt{display:flex;align-items:center;gap:12px;width:100%;text-align:left;background:var(--bg-2);border:1px solid var(--line-2);color:var(--text);font:600 13px "Space Grotesk",sans-serif;padding:13px 15px;cursor:pointer;transition:border-color .15s,background .15s;border-radius:9px}
   .wopt:hover{border-color:var(--accent);background:var(--surface-2)}
   .wopt .wi{width:20px;height:20px;flex:none;object-fit:contain;display:inline-flex;align-items:center;justify-content:center;font-size:15px}
-  .wopt .wtag{margin-left:auto;font:8px "JetBrains Mono",monospace;letter-spacing:1px;text-transform:uppercase;color:var(--faint);border:1px solid var(--line-2);padding:1px 6px}
-  .mfoot{margin-top:16px;font:10px "JetBrains Mono",monospace;color:var(--faint);text-align:center}
+  .wopt img.wi{width:26px;height:26px;border:1px solid var(--line-2);border-radius:7px;padding:3px;box-sizing:border-box;background:transparent}
+  .wopt .wi-mail{width:24px;height:24px;color:var(--dim)}
+  .wopt .wi-mail svg{width:100%;height:100%}
+  .wopt .wtag{margin-left:auto;font:8px "Overpass Mono",monospace;letter-spacing:1px;text-transform:uppercase;color:var(--faint);border:1px solid var(--line-2);border-radius:999px;padding:1px 7px}
+  .mfoot{margin-top:16px;font:10px "Overpass Mono",monospace;color:var(--faint);text-align:center}
   .mfoot b{color:var(--dim)}
   .gform{display:flex;flex-direction:column;gap:10px;margin-top:14px}
-  .gform label{font:11px "JetBrains Mono",monospace;color:var(--dim)}
+  .gform label{font:11px "Overpass Mono",monospace;color:var(--dim)}
   .gform label b{color:var(--text)}
-  .gform input{font:14px "JetBrains Mono",monospace;color:var(--text);background:var(--bg-2);border:1px solid var(--line-2);padding:10px 12px;outline:none;letter-spacing:.5px}
+  .gform input{font:14px "Overpass Mono",monospace;color:var(--text);background:var(--bg-2);border:1px solid var(--line-2);border-radius:10px;padding:10px 12px;outline:none;letter-spacing:.5px}
   .gform input:focus{border-color:var(--accent)}
   #otp{letter-spacing:6px;font-size:17px;text-align:center}
   .grow{display:flex;gap:10px;align-items:center}
-  .lnk{background:none;border:none;color:var(--faint);font:11px "JetBrains Mono",monospace;cursor:pointer;padding:6px 0}
+  .lnk{background:none;border:none;color:var(--faint);font:11px "Overpass Mono",monospace;cursor:pointer;padding:6px 0}
   .lnk:hover{color:var(--dim)}
-  .gnote{font:12px "JetBrains Mono",monospace;color:var(--accent-2);min-height:16px;margin-top:10px}
+  .gnote{font:12px "Overpass Mono",monospace;color:var(--accent-2);min-height:16px;margin-top:10px}
   .gnote.err{color:var(--bad)}
 
   /* dashboard */
   .dash{display:grid;grid-template-columns:minmax(0,1fr) 290px;gap:18px;align-items:start}
   @media(max-width:900px){.dash{grid-template-columns:1fr}}
-  .panel{background:var(--surface);border:1px solid var(--line);padding:16px 18px;margin-bottom:16px}
+  .panel{background:rgba(255,255,255,.02);border:1px solid var(--line);border-radius:12px;padding:16px 18px;margin-bottom:16px}
   .panel h3{font-size:14px;margin:0 0 14px;display:flex;align-items:center;gap:8px}
-  .mini{font:11px "JetBrains Mono",monospace;color:var(--brand-ink);background:var(--accent);border:none;padding:5px 11px;cursor:pointer;margin-left:auto;--cham:6px}
+  .mini{font:11px "Overpass Mono",monospace;color:var(--brand-ink);background:var(--accent);border:none;border-radius:6px;padding:5px 11px;cursor:pointer;margin-left:auto}
   .mini:hover{background:var(--accent-2)}
   table.keys{width:100%;border-collapse:collapse}
-  table.keys th{font:9.5px "JetBrains Mono",monospace;letter-spacing:1px;text-transform:uppercase;color:var(--faint);text-align:left;padding:0 8px 9px 0;font-weight:600}
+  table.keys th{font:9.5px "Overpass Mono",monospace;letter-spacing:1px;text-transform:uppercase;color:var(--faint);text-align:left;padding:0 8px 9px 0;font-weight:600}
   table.keys td{font-size:12.5px;color:var(--text);padding:10px 8px 10px 0;border-top:1px solid var(--line)}
-  table.keys td.k{font:12px "JetBrains Mono",monospace;color:var(--dim);white-space:nowrap}
-  table.keys td.dt{font:12px "JetBrains Mono",monospace;color:var(--dim)}
-  table.keys td.num{font:12px "JetBrains Mono",monospace;text-align:right;color:var(--dim)}
+  table.keys td.k{font:12px "Overpass Mono",monospace;color:var(--dim);white-space:nowrap}
+  table.keys td.dt{font:12px "Overpass Mono",monospace;color:var(--dim)}
+  table.keys td.num{font:12px "Overpass Mono",monospace;text-align:right;color:var(--dim)}
   table.keys th.rt{text-align:right}
   .kcopy{background:none;border:none;color:var(--faint);cursor:pointer;padding:0;margin-left:9px;width:15px;height:15px;vertical-align:middle;display:inline-flex;align-items:center;justify-content:center;font-size:12px}
   .kcopy:hover{color:var(--accent-2)}
@@ -61,29 +64,29 @@
   .kcopy svg{width:13px;height:13px;display:block}
   @keyframes freshrow{from{background:rgba(90,200,160,.14)}to{background:transparent}}
   table.keys tr.fresh td{animation:freshrow 1.8s ease-out}
-  .rev{font:10px "JetBrains Mono",monospace;color:var(--faint);border:1px solid var(--line);padding:3px 9px;cursor:pointer}
+  .rev{font:10px "Overpass Mono",monospace;color:var(--faint);border:1px solid var(--line);border-radius:6px;padding:3px 9px;cursor:pointer}
   .rev:hover{color:var(--bad);border-color:var(--bad)}
   .kdot{display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--good);margin-right:8px;vertical-align:middle}
-  .dnote{font:11px "JetBrains Mono",monospace;color:var(--faint);margin-top:10px;min-height:14px}
-  .meter{height:9px;background:var(--surface-2);border:1px solid var(--line);margin:2px 0 7px;overflow:hidden}
+  .dnote{font:11px "Overpass Mono",monospace;color:var(--faint);margin-top:10px;min-height:14px}
+  .meter{height:9px;background:var(--surface-2);border:1px solid var(--line);border-radius:999px;margin:2px 0 7px;overflow:hidden}
   .meter > i{display:block;height:100%;background:linear-gradient(90deg,var(--accent),var(--accent-2))}
   .usage-row{display:flex;gap:26px;flex-wrap:wrap;margin-top:16px}
   .usage-row .u{font-size:11px;color:var(--dim)}
-  .usage-row .u b{display:block;font:600 18px "JetBrains Mono",monospace;color:var(--text);letter-spacing:-.5px;margin-bottom:1px}
-  .tier{border:1px solid var(--line);border-left:2px solid var(--line-2);padding:11px 13px;margin-bottom:10px}
+  .usage-row .u b{display:block;font:600 18px "Overpass Mono",monospace;color:var(--text);letter-spacing:-.5px;margin-bottom:1px}
+  .tier{border:1px solid var(--line);border-left:2px solid var(--line-2);border-radius:10px;padding:11px 13px;margin-bottom:10px}
   .tier.free{border-left-color:var(--good)} .tier.agent{border-left-color:var(--accent)}
   .tier h4{font-size:13px;display:flex;justify-content:space-between;align-items:center;gap:6px;margin:0 0 3px}
-  .tier .price{font:11px "JetBrains Mono",monospace;color:var(--accent-2);margin-bottom:7px}
+  .tier .price{font:11px "Overpass Mono",monospace;color:var(--accent-2);margin-bottom:7px}
   .tier ul{list-style:none;margin:0}
   .tier li{font-size:11.5px;color:var(--dim);padding:2px 0 2px 12px;position:relative;line-height:1.45}
   .tier li::before{content:"·";position:absolute;left:2px;color:var(--faint)}
-  .cur{font:8.5px "JetBrains Mono",monospace;letter-spacing:1px;text-transform:uppercase;color:var(--good);border:1px solid var(--good);padding:1px 6px}
-  .pl{font:8.5px "JetBrains Mono",monospace;letter-spacing:1px;text-transform:uppercase;color:var(--faint);border:1px dashed var(--line-2);padding:1px 6px}
-  .mo{margin-left:auto;font:11px "JetBrains Mono",monospace;color:var(--faint)}
+  .cur{font:8.5px "Overpass Mono",monospace;letter-spacing:1px;text-transform:uppercase;color:var(--good);border:1px solid var(--good);border-radius:999px;padding:1px 7px}
+  .pl{font:8.5px "Overpass Mono",monospace;letter-spacing:1px;text-transform:uppercase;color:var(--faint);border:1px dashed var(--line-2);border-radius:999px;padding:1px 7px}
+  .mo{margin-left:auto;font:11px "Overpass Mono",monospace;color:var(--faint)}
 
   /* site-themed dialog (replaces native prompt/confirm) */
-  .dlg-body{font:12px "JetBrains Mono",monospace;color:var(--dim);line-height:1.55;margin:0}
-  .dlg-input{width:100%;font:13px "JetBrains Mono",monospace;color:var(--text);background:var(--bg-2);border:1px solid var(--line-2);padding:11px 12px;outline:none;box-sizing:border-box;margin-top:14px;letter-spacing:.3px}
+  .dlg-body{font:12px "Overpass Mono",monospace;color:var(--dim);line-height:1.55;margin:0}
+  .dlg-input{width:100%;font:13px "Overpass Mono",monospace;color:var(--text);background:var(--bg-2);border:1px solid var(--line-2);border-radius:10px;padding:11px 12px;outline:none;box-sizing:border-box;margin-top:14px;letter-spacing:.3px}
   .dlg-input:focus{border-color:var(--accent)}
   .dlg-actions{display:flex;gap:8px;justify-content:flex-end;align-items:center;margin-top:20px}
   .launch.danger{background:var(--bad);color:#fff}
@@ -94,7 +97,7 @@
 <canvas id="dots"></canvas>
 
 <header><div class="wrap"><nav class="nav">
-  <a class="brand" href="/"><img src="/assets/logo-mark.png" alt="">Oculopus <span style="color:var(--faint);font-weight:500;font-size:11px;letter-spacing:2px;font-family:'JetBrains Mono',monospace">APP</span></a>
+  <a class="brand" href="/"><img src="/assets/logo-mark.png" alt="">Oculopus <span style="color:var(--faint);font-weight:500;font-size:11px;letter-spacing:2px;font-family:'Overpass Mono',monospace">APP</span></a>
   <div class="links">
     <a href="/explore">Explore</a><a href="/graph">Graph</a><a class="on" href="/api">API</a><a href="/network">Network</a>
   </div>
@@ -129,7 +132,7 @@
       <div class="panel">
         <h3>Usage <span class="mo">Aug 2026</span></h3>
         <div class="meter"><i id="usageBar" style="width:0%"></i></div>
-        <div id="usageText" style="font:11px 'JetBrains Mono',monospace;color:var(--dim)">—</div>
+        <div id="usageText" style="font:11px 'Overpass Mono',monospace;color:var(--dim)">—</div>
         <div class="usage-row">
           <div class="u"><b>Free</b>current plan</div>
           <div class="u"><b>10 req/s</b>rate limit</div>
@@ -156,8 +159,8 @@
     <button class="mx" id="modalX" aria-label="Close">×</button>
     <h3 class="mtitle">Connect wallet</h3>
     <div class="wopts" id="wopts">
-      <button class="wopt" id="mm"><img class="wi" src="/assets/metamask.svg" alt=""><span>MetaMask</span></button>
-      <button class="wopt" id="emailBtn"><span class="wi">✉</span><span>Sign in with email</span><span class="wtag">Circle</span></button>
+      <button class="wopt" id="mm"><img class="wi" src="/assets/metamask.svg?v=2" alt=""><span>MetaMask</span></button>
+      <button class="wopt" id="emailBtn"><span class="wi wi-mail"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2.5"/><path d="M4 7.5l8 5.5 8-5.5"/></svg></span><span>Sign in with email</span><span class="wtag">Circle</span></button>
     </div>
 
     <form class="gform" id="emailForm" hidden>
@@ -295,7 +298,7 @@ function renderKeys(keys) {
       <td class="dt">${new Date(k.created_at).toISOString().slice(0, 10)}</td>
       <td class="num">${(k.used || 0).toLocaleString()}</td>
       <td><span class="rev" data-key="${esc(k.key)}">Revoke</span></td>
-    </tr>`).join("") : `<tr><td colspan="5" style="padding:14px 0;font:12px 'JetBrains Mono',monospace;color:var(--faint)">No keys yet — create one to start.</td></tr>`;
+    </tr>`).join("") : `<tr><td colspan="5" style="padding:14px 0;font:12px 'Overpass Mono',monospace;color:var(--faint)">No keys yet — create one to start.</td></tr>`;
   freshKey = "";
   $("keyRows").querySelectorAll(".rev").forEach(b => b.addEventListener("click", () => revoke(b.dataset.key)));
   $("keyRows").querySelectorAll(".kcopy").forEach(b => b.addEventListener("click", () => copyKey(b)));

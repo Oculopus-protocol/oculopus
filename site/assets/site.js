@@ -85,4 +85,4 @@ function ocReveal() {
   document.querySelectorAll(".flow .node").forEach((n, i) => { n.style.animationDelay = (i * 0.7) + "s"; });
 }
 
-document.addEventListener("DOMContentLoaded", () => { ocStarfield(); ocReveal(); });
+document.addEventListener("DOMContentLoaded", () => { ocReveal(); });
