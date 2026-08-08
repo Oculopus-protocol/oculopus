@@ -156,7 +156,7 @@
       <div class="h">$ terminal</div>
 <pre><span class="cm"># clone + unit tests</span>
 <span class="kw">git</span> clone github.com/Oculopus-protocol/oculopus
-<span class="kw">npm</span> install && <span class="kw">npm</span> test        <span class="cm"># 69 passing</span>
+<span class="kw">npm</span> install && <span class="kw">npm</span> test        <span class="cm"># 76 passing</span>
 
 <span class="cm"># 13 checks vs a real Arc testnet tx</span>
 <span class="kw">npm</span> run <span class="fn">verify:memo</span>
@@ -164,6 +164,18 @@
 <span class="cm"># the full autonomous loop</span>
 <span class="kw">npm</span> run <span class="fn">demo</span></pre>
     </div>
+  </div>
+</section></div>
+
+<!-- ROADMAP -->
+<div class="wrap"><section class="blk">
+  <div class="rv"><div class="eyebrow">Roadmap · where this is going</div>
+  <h2>Verifiable today. Private and rail-agnostic next.</h2>
+  <p class="sub">The receipt is open and recomputable now. Next: a verifiable-reputation layer that works on any rail — and lets an agent prove its record without exposing the deals behind it.</p></div>
+  <div class="grid3">
+    <div class="card rv"><h3>Selective disclosure</h3><p>A Proof Receipt an agent can keep private: publish a commitment, prove <span class="k">co-signed · settled · ≥ tier</span> with a zero-knowledge proof — revealing none of the counterparties or amounts.</p></div>
+    <div class="card rv"><h3>Rail-agnostic</h3><p>The same Proof Receipt from any rail — Circle, Ethereum, Solana, Stripe — not just Arc. Reputation infrastructure, not one chain's app.</p></div>
+    <div class="card rv"><h3>Private payments · Arc APS</h3><p>When Arc ships opt-in privacy, the payment itself goes private on-chain — amount and parties hidden at the ledger, the score still provable.</p></div>
   </div>
 </section></div>
 
