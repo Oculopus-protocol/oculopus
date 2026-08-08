@@ -107,9 +107,8 @@
 .top-card { position: relative; display: flex; flex-direction: column; align-items: flex-start; gap: 7px; border: 1px solid var(--line); border-radius: 12px; background: linear-gradient(165deg, rgba(255,255,255,.03), transparent 70%); padding: 15px 16px; text-decoration: none; transition: border-color .2s, transform .2s; }
 .top-card:hover { border-color: var(--line-2); transform: translateY(-2px); }
 .top-card.featured { border-color: var(--line-2); padding: 20px 18px; background: linear-gradient(165deg, rgba(255,255,255,.06), transparent 72%); }
-.top-rank { position: absolute; top: 10px; right: 11px; display: inline-flex; align-items: center; justify-content: center; color: var(--dim); }
-.top-rank svg { width: 58px; height: 58px; }
-.top-rank .tr-n { position: absolute; left: 0; right: 0; top: 65%; transform: translateY(-50%); text-align: center; font: 600 24px "Overpass Mono", monospace; font-style: normal; line-height: 1; color: currentColor; }
+.top-rank { position: absolute; top: 12px; right: 12px; display: inline-flex; }
+.top-rank .medal { width: 52px; height: 52px; object-fit: contain; display: block; }
 .top-card.featured .top-rank { color: #E6A84B; border-color: rgba(230,168,75,.6); }
 .top-id { display: flex; align-items: center; gap: 9px; }
 .top-name { font: 13px "Overpass Mono", monospace; color: var(--text); }
@@ -204,8 +203,7 @@ const avatarHtml = (a, cls) => a && a.avatar
   ? `<span class="av ${cls || ""}"><img src="${esc(a.avatar)}" alt="" loading="lazy"></span>`
   : `<span class="av ${cls || ""}">${AGENT_SVG}</span>`;
 
-// crown for the top-3 podium (colour comes from the rk1/rk2/rk3 class) + copy-address control
-const CROWN_SVG = `<svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true"><path d="M4 12.5L2.4 4l8.1 4.6L16 2.4l5.5 6.2L29.6 4 28 12.5V29H4V12.5Z"/></svg>`;
+// copy-address control
 const COPY_SVG = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h8"/></svg>`;
 const copyBtn = addr => `<button class="cpbtn" data-copy="${esc(addr)}" title="Copy address" aria-label="Copy address">${COPY_SVG}</button>`;
 function copyAddr(btn) {
@@ -500,7 +498,7 @@ function renderTop() {
     const rank = top.indexOf(a) + 1;
     const vol = volFor(a), volTxt = vol >= 1000 ? "$" + (vol / 1000).toFixed(1) + "k" : "$" + vol.toFixed(2);
     return `<a class="top-card ${rank === 1 ? "featured" : ""}" href="/agent?addr=${esc(a.address)}">
-      <span class="top-rank rk${rank}">${CROWN_SVG}<i class="tr-n">${rank}</i></span>
+      <span class="top-rank"><img class="medal" src="/assets/${rank === 1 ? "gold" : rank === 2 ? "silver" : "bronze"}-medal.png" alt="#${rank} medal"></span>
       <div class="top-id">${avatarHtml(a, "lg")}<span class="top-name">${esc(a.name || short(a.address))}</span></div>
       <div class="top-score" style="color:${grade(a.score)}">${Number(a.score).toFixed(1)}</div>
       <div class="top-sub">${esc(a.receipts)} receipts · ${volTxt} · ${esc(a.uniqueCounterparties ?? 0)} buyers</div>

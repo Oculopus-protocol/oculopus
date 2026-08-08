@@ -91,6 +91,21 @@
   .dlg-actions{display:flex;gap:8px;justify-content:flex-end;align-items:center;margin-top:20px}
   .launch.danger{background:var(--bad);color:#fff}
   .launch.danger:hover{background:var(--bad);filter:brightness(1.12)}
+  /* signed-in wallet chip + dropdown (address · USDC) */
+  .wallet{position:relative}
+  .wpill{display:inline-flex;align-items:center;gap:8px;font:12.5px "Overpass Mono",monospace;color:var(--text);background:var(--surface);border:1px solid var(--line-2);border-radius:9px;padding:8px 12px;cursor:pointer;transition:.15s}
+  .wpill:hover{background:var(--surface-2)}
+  .wp-dot{width:7px;height:7px;border-radius:50%;background:var(--good);box-shadow:0 0 0 3px rgba(63,178,127,.18)}
+  .wp-cv{color:var(--faint);font-size:10px}
+  .wdrop{position:absolute;top:calc(100% + 8px);right:0;width:250px;background:var(--surface);border:1px solid var(--line-2);border-radius:12px;padding:12px;z-index:60;box-shadow:var(--shadow)}
+  .wd-head{display:flex;align-items:center;gap:7px;font:12px "Overpass Mono",monospace;color:var(--dim);padding-bottom:10px;border-bottom:1px solid var(--line);margin-bottom:6px}
+  .wd-addr{color:var(--text)} .wd-scan{color:var(--dim);margin-left:auto;text-decoration:none}
+  .wd-row{display:flex;align-items:center;gap:9px;padding:9px 4px}
+  .wd-logo{width:22px;height:22px;border-radius:50%;flex:none}
+  .wd-name{font:12.5px "Overpass Mono",monospace;color:var(--text)}
+  .wd-bal{margin-left:auto;font:12.5px "Overpass Mono",monospace;color:var(--text)}
+  .wd-out{width:100%;margin-top:8px;font:11px "Overpass Mono",monospace;color:var(--dim);background:var(--bg-2);border:1px solid var(--line);border-radius:8px;padding:8px;cursor:pointer;transition:.15s}
+  .wd-out:hover{color:var(--bad);border-color:var(--bad)}
 </style>
 </head>
 <body>
@@ -103,7 +118,7 @@
   </div>
   <div class="right">
     <a class="btn ghost" href="/">← Site</a>
-    <span id="acct" hidden></span>
+    <div class="wallet" id="wallet" hidden></div>
     <button class="launch" id="pill" style="--cham:7px">Connect wallet</button>
   </div>
 </nav></div></header>
@@ -201,7 +216,7 @@
 
 <script>
 const $ = id => document.getElementById(id);
-const dash = $("dash"), gate = $("gate"), pill = $("pill"), acct = $("acct"), gnote = $("gnote"), modal = $("authModal");
+const dash = $("dash"), gate = $("gate"), pill = $("pill"), gnote = $("gnote"), modal = $("authModal");
 const short = a => a && a.length > 12 ? a.slice(0, 6) + "…" + a.slice(-4) : (a || "");
 const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 // Account API lives with the oracle, proxied at /oracle/account/* on the node host.
@@ -253,15 +268,39 @@ function resetModal() { $("wopts").hidden = false; $("emailForm").hidden = true;
 function openModal() { resetModal(); modal.hidden = false; }
 function closeModal() { modal.hidden = true; }
 function connected(address) {
-  closeModal(); dash.hidden = false; gate.hidden = true;
-  acct.textContent = short(address); acct.hidden = false;
-  pill.textContent = "Sign out"; pill.dataset.on = "1"; dnote("");
+  closeModal(); dash.hidden = false; gate.hidden = true; dnote("");
+  pill.hidden = true;
+  renderWallet(address);
   loadKeys();
+}
+// Wallet chip + dropdown (address · USDC balance) shown once signed in.
+function renderWallet(address) {
+  const w = $("wallet"); w.hidden = false;
+  w.innerHTML = `
+    <button class="wpill" id="wpill"><span class="wp-dot"></span>${short(address)}<span class="wp-cv">▾</span></button>
+    <div class="wdrop" id="wdrop" hidden>
+      <div class="wd-head"><span class="wd-addr">${short(address)}</span><button class="cpbtn wd-copy" title="Copy address" aria-label="Copy address">${copyIcon}</button><a class="wd-scan" href="https://testnet.arcscan.app/address/${esc(address)}" target="_blank" rel="noopener" title="View on explorer">↗</a></div>
+      <div class="wd-row"><img src="/assets/usdc.png" alt="" class="wd-logo"><span class="wd-name">USDC</span><span class="wd-bal" id="wd-bal">…</span></div>
+      <button class="wd-out" id="wd-out">Disconnect</button>
+    </div>`;
+  $("wpill").addEventListener("click", e => { e.stopPropagation(); const d = $("wdrop"); d.hidden = !d.hidden; });
+  w.querySelector(".wd-copy").addEventListener("click", e => { e.stopPropagation(); navigator.clipboard && navigator.clipboard.writeText(address); const b = e.currentTarget; b.classList.add("ok"); setTimeout(() => b.classList.remove("ok"), 1100); });
+  $("wd-out").addEventListener("click", signout);
+  document.addEventListener("click", e => { const d = $("wdrop"); if (d && !w.contains(e.target)) d.hidden = true; });
+  loadUsdc(address);
+}
+async function loadUsdc(address) {
+  try {
+    const hex = await window.ethereum.request({ method: "eth_getBalance", params: [address, "latest"] });
+    const bal = Number(BigInt(hex)) / 1e18;
+    const el = $("wd-bal"); if (el) el.textContent = bal.toLocaleString(undefined, { maximumFractionDigits: 2 });
+  } catch { const el = $("wd-bal"); if (el) el.textContent = "—"; }
 }
 function signout() {
   TOKEN = ""; localStorage.removeItem("oc-token"); localStorage.removeItem("oc-addr");
-  dash.hidden = true; gate.hidden = false; acct.hidden = true;
-  pill.textContent = "Connect wallet"; delete pill.dataset.on;
+  dash.hidden = true; gate.hidden = false;
+  const w = $("wallet"); w.hidden = true; w.innerHTML = "";
+  pill.hidden = false; pill.textContent = "Connect wallet"; delete pill.dataset.on;
 }
 
 // Wallet sign-in (SIWE-style): nonce → personal_sign → verify → session token.

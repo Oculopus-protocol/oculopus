@@ -11,7 +11,7 @@
 <link rel="stylesheet" href="/assets/oculopus.css">
 <script src="/assets/site.js"></script>
 <style>
-  .ent{display:flex;align-items:center;gap:18px;flex-wrap:wrap;margin:6px 0 4px}
+  .ent{display:flex;align-items:center;gap:16px;flex-wrap:wrap;margin:2px 0 2px}
   .ava{width:56px;height:56px;flex:none;background:linear-gradient(155deg,var(--surface),var(--bg-2));border:1px solid var(--line-2);border-radius:10px;display:grid;place-items:center;color:var(--dim)}
   .ava svg{width:30px;height:30px}
   .ent h1{font-size:26px;letter-spacing:-.5px;line-height:1.1}
@@ -22,20 +22,21 @@
   .ent .sc .n{font:600 46px "Overpass Mono",monospace;letter-spacing:-2px;line-height:1}
   .ent .sc .t{font:11px "Overpass Mono",monospace;letter-spacing:1.5px;text-transform:uppercase;color:var(--faint);margin-top:4px}
   .ag-grid{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(0,1fr);gap:18px;margin-top:14px;align-items:stretch;flex:1;min-height:0}
-  .ag-grid > div{overflow-y:auto;min-height:0;scrollbar-width:none}
+  .ag-grid > div{overflow-y:auto;min-height:0;scrollbar-width:none;display:flex;flex-direction:column}
   .ag-grid > div::-webkit-scrollbar{display:none}
+  .ag-grid > div > .panel:last-child{flex:1 1 auto}
   #app{display:flex;flex-direction:column;height:100%}
-  .agent-cap{height:calc(100vh - 64px);overflow:hidden;padding-top:14px}
+  .agent-cap{height:calc(100vh - 64px);overflow:hidden;padding-top:11px}
   .panel{margin-bottom:14px}
   @media(max-width:900px){.agent-cap{height:auto;overflow:visible}.ag-grid{grid-template-columns:1fr;overflow:visible}.ag-grid > div{overflow:visible}.ent .sc{margin-left:0}}
-  .panel{background:rgba(255,255,255,.02);border:1px solid var(--line);border-radius:12px;padding:14px 16px;margin-bottom:12px}
+  .panel{background:rgba(255,255,255,.02);border:1px solid var(--line);border-radius:12px;padding:12px 15px;margin-bottom:9px}
   .panel .ph{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:10px}
   .panel .ph h3{font-size:14px;letter-spacing:-.2px}
   .panel .ph .tag,.tf{font:10px "Overpass Mono",monospace;letter-spacing:1.2px;text-transform:uppercase;color:var(--faint)}
   .tfs{display:flex;gap:2px}
   .tfs button{font:10px "Overpass Mono",monospace;letter-spacing:1px;color:var(--dim);background:none;border:1px solid var(--line);padding:3px 8px;cursor:pointer}
   .tfs button.on{color:var(--brand-ink);background:var(--accent);border-color:var(--accent)}
-  .kv{display:flex;justify-content:space-between;gap:12px;font:12.5px "Overpass Mono",monospace;padding:6px 0;border-bottom:1px solid var(--line)}
+  .kv{display:flex;justify-content:space-between;gap:12px;font:12.5px "Overpass Mono",monospace;padding:5px 0;border-bottom:1px solid var(--line)}
   .kv:last-child{border-bottom:none}.kv span:first-child{color:var(--dim)}
   .cp{display:flex;align-items:center;justify-content:space-between;gap:10px;font:12px "Overpass Mono",monospace;padding:6px 0;border-bottom:1px solid var(--line)}
   .cp:last-child{border-bottom:none}.cp .a{color:var(--text)}
@@ -45,13 +46,19 @@
   table.rt tr:last-child td{border-bottom:none}
   table.rt a{color:var(--accent)}
   .demo-tag{font:9px "Overpass Mono",monospace;letter-spacing:1px;text-transform:uppercase;color:var(--faint);border:1px dashed var(--line-2);padding:1px 6px}
-  .crumb{display:inline-flex;align-items:center;gap:6px;font:11px "Overpass Mono",monospace;letter-spacing:1px;text-transform:uppercase;color:var(--dim);margin-bottom:16px;transition:.15s}
+  .crumb{display:inline-flex;align-items:center;gap:6px;font:11px "Overpass Mono",monospace;letter-spacing:1px;text-transform:uppercase;color:var(--dim);margin-bottom:9px;transition:.15s}
   .crumb:hover{color:var(--text)}
-  .prof-mets{display:grid;grid-template-columns:repeat(6,1fr);gap:1px;background:var(--line);border:1px solid var(--line);border-radius:10px;overflow:hidden;margin:18px 0 4px}
+  .prof-mets{display:grid;grid-template-columns:repeat(6,1fr);gap:1px;background:var(--line);border:1px solid var(--line);border-radius:10px;overflow:hidden;margin:14px 0 4px}
   @media(max-width:760px){.prof-mets{grid-template-columns:repeat(3,1fr)}}
-  .pm{background:transparent;padding:12px 14px}
+  .pm{background:transparent;padding:8px 13px}
   .pm .pl{font:9px "Overpass Mono",monospace;letter-spacing:.8px;text-transform:uppercase;color:var(--faint);margin-bottom:4px}
   .pm .pv{font:16px "Overpass Mono",monospace;color:var(--text)}
+  .ent .sc .n .sc-slash{color:var(--faint);margin:0 5px;font-weight:400}
+  .ent .sc .n .sc-buyer{font-size:30px;color:var(--dim)}
+  .pager{display:flex;gap:5px;margin-top:12px;flex-wrap:wrap}
+  .pager .pg{font:11px "Overpass Mono",monospace;color:var(--dim);background:none;border:1px solid var(--line);border-radius:6px;padding:3px 9px;cursor:pointer}
+  .pager .pg:hover{border-color:var(--line-2);color:var(--text)}
+  .pager .pg.on{color:var(--brand-ink);background:var(--accent);border-color:var(--accent)}
 </style>
 </head>
 <body>
@@ -117,7 +124,7 @@ const history = (addr, score) => {
   return out;
 };
 function sparkline(series) {
-  const W = 620, H = 150, padL = 28, padR = 10, padY = 14, n = series.length;
+  const W = 620, H = 146, padL = 28, padR = 10, padY = 13, n = series.length;
   const x = i => padL + i * (W - padL - padR) / (n - 1);
   const y = v => H - padY - (v / 100) * (H - 2 * padY);
   const line = series.map((v, i) => `${i ? "L" : "M"}${x(i).toFixed(1)} ${y(v).toFixed(1)}`).join(" ");
@@ -143,14 +150,25 @@ function railChips(r) {
 async function load() {
   const params = new URLSearchParams(location.search);
   let addr = (params.get("addr") || params.get("id") || "").toLowerCase().trim();
-  let a = null;
-  if (API && addr) { try { const r = await fetch(API + "/agents/" + addr); if (r.ok) a = await r.json(); } catch {} }
-  if (!a) { // demo fallback
+  let a = null, dir = null;
+  if (API && addr) {
+    const [ag, d] = await Promise.all([
+      fetch(API + "/agents/" + addr).then(r => r.ok ? r.json() : null).catch(() => null),
+      fetch(API + "/directory").then(r => r.ok ? r.json() : null).catch(() => null),
+    ]);
+    a = ag;
+    if (d && d.agents) dir = d.agents.find(x => (x.address || "").toLowerCase() === addr);
+  }
+  if (!a && !dir) { // demo fallback (no node)
     if (!addr || !DEMO[addr]) addr = "0x2f81ba0d7cc4e9a5301bb6f2a7e4419c8d0a5b3e";
     a = { address: addr, ...DEMO[addr], recentReceipts: DEMO_RECEIPTS(DEMO[addr].score), _demo: true };
   }
-  a.address = a.address || addr;
-  render(a);
+  // Directory is canonical for the headline score, category and rails — the same values
+  // Explore shows, so the two never disagree. /agents supplies receipts and the buyer score.
+  const merged = { ...(a || {}), ...(dir || {}) };
+  merged.address = merged.address || addr;
+  merged._demo = !!(a && a._demo);
+  render(merged);
 }
 
 function render(a) {
@@ -158,15 +176,13 @@ function render(a) {
   const score = Number(a.score) || 0;
   const rails = a.rails || {};
   const receipts = a.recentReceipts || a._receipts || DEMO_RECEIPTS(score);
-  const cps = DEMO_CPS(score);
+  const buyerScore = a.asBuyer ? Number(a.asBuyer.score) || 0 : 0;
   const demo = a._demo ? ` <span class="demo-tag">demo</span>` : "";
-  const rows = receipts.slice(0, 8).map(r => {
-    const cls = r.outcome === "success" ? "ok-txt" : "bad-txt";
-    const when = r.deliveredAt ? new Date(r.deliveredAt).toISOString().slice(0, 10) : "—";
-    const tx = r.tx ? `<a href="${SCAN}/tx/${esc(r.tx)}" target="_blank" rel="noopener">tx ↗</a>` : `<span class="dim">—</span>`;
-    return `<tr><td>${esc(when)}</td><td>${esc(short(r.buyer))}</td><td class="${cls}">${esc(r.outcome)}</td><td>${esc(r.usdc)} USDC</td><td>${tx}</td></tr>`;
-  }).join("");
   const rs = receipts || [];
+  RCPTS = rs;
+  const cpMap = {};
+  rs.forEach(r => { const b = r.buyer; if (!b) return; (cpMap[b] = cpMap[b] || { addr: b, n: 0, vol: 0 }).n++; cpMap[b].vol += parseFloat(r.usdc) || 0; });
+  const topCps = Object.values(cpMap).sort((x, y) => y.n - x.n || y.vol - x.vol).slice(0, 5);
   const successRate = rs.length ? Math.round(rs.filter(r => r.outcome === "success").length / rs.length * 100) : null;
   const volume = rs.reduce((s, r) => s + (parseFloat(r.usdc) || 0), 0);
   const lats = rs.filter(r => r.latencyMs).map(r => r.latencyMs);
@@ -190,8 +206,8 @@ function render(a) {
         </div>
       </div>
       <div class="sc">
-        <div class="n" style="color:${grade(score)}">${score.toFixed(1)}</div>
-        <div class="t">${esc(tierOf(score))} · provider score</div>
+        <div class="n"><span style="color:${grade(score)}">${score.toFixed(1)}</span><span class="sc-slash">/</span><span class="sc-buyer">${buyerScore.toFixed(1)}</span></div>
+        <div class="t">${esc(tierOf(score))} · provider / buyer</div>
       </div>
     </div>
 
@@ -209,12 +225,12 @@ function render(a) {
         <div class="panel">
           <div class="ph"><h3>Score history</h3><div class="tfs"><button class="on">1M</button><button>3M</button><button>ALL</button></div></div>
           ${sparkline(history(a.address, score))}
-          <div class="tag" style="margin-top:8px;font:10px 'Overpass Mono',monospace;color:var(--faint)">Illustrative — timestamped history ships with the Analytics API (roadmap).</div>
+          <div class="tag" style="margin-top:8px;font:10px 'Overpass Mono',monospace;color:var(--faint)">Base score from the indexer · job-weighted score pending (worker offline). Timestamped history ships with the Analytics API.</div>
         </div>
         <div class="panel">
-          <div class="ph"><h3>Recent receipts</h3><span class="tag">${receipts.length} shown</span></div>
-          <table class="rt"><thead><tr><th>Date</th><th>Buyer</th><th>Outcome</th><th>Value</th><th>Tx</th></tr></thead>
-          <tbody>${rows || `<tr><td colspan="5" class="dim">No receipts held yet.</td></tr>`}</tbody></table>
+          <div class="ph"><h3>Recent receipts</h3><span class="tag">${rs.length} total</span></div>
+          <div id="rcpt-body"></div>
+          <div id="rcpt-pager" class="pager"></div>
         </div>
       </div>
       <div>
@@ -228,8 +244,8 @@ function render(a) {
           <div class="kv"><span>Also a buyer</span><span>${a.asBuyer ? `${Number(a.asBuyer.score).toFixed(1)} · ${esc(a.asBuyer.receipts)} rcpts` : "—"}</span></div>
         </div>
         <div class="panel">
-          <div class="ph"><h3>Top counterparties</h3><span class="tag">by standing</span></div>
-          ${cps.slice(0, 3).map(c => `<div class="cp"><span class="a">${esc(c.addr)}</span><span class="dim">${esc(c.w)}</span></div>`).join("")}
+          <div class="ph"><h3>Top counterparties</h3><span class="tag">by receipts</span></div>
+          ${topCps.length ? topCps.map(c => `<div class="cp"><span class="a">${esc(short(c.addr))}</span><span class="dim">${c.n} rcpts · $${c.vol.toFixed(2)}</span></div>`).join("") : `<div class="dim small">No counterparties yet.</div>`}
         </div>
         <div class="panel">
           <div class="ph"><h3>Identity</h3></div>
@@ -240,6 +256,27 @@ function render(a) {
         </div>
       </div>
     </div>`;
+  renderReceipts(1);
+}
+
+let RCPTS = [];
+const RCPT_PER = 8;
+function rcptRow(r) {
+  const cls = r.outcome === "success" ? "ok-txt" : "bad-txt";
+  const when = r.deliveredAt ? new Date(r.deliveredAt).toISOString().slice(0, 10) : "—";
+  const tx = r.tx ? `<a href="${SCAN}/tx/${esc(r.tx)}" target="_blank" rel="noopener">tx ↗</a>` : `<span class="dim">—</span>`;
+  return `<tr><td>${esc(when)}</td><td>${esc(short(r.buyer))}</td><td class="${cls}">${esc(r.outcome)}</td><td>${esc(r.usdc)} USDC</td><td>${tx}</td></tr>`;
+}
+function renderReceipts(page) {
+  const total = RCPTS.length, pages = Math.max(1, Math.ceil(total / RCPT_PER));
+  page = Math.max(1, Math.min(page, pages));
+  const slice = RCPTS.slice((page - 1) * RCPT_PER, page * RCPT_PER);
+  document.getElementById("rcpt-body").innerHTML =
+    `<table class="rt"><thead><tr><th>Date</th><th>Buyer</th><th>Outcome</th><th>Value</th><th>Tx</th></tr></thead><tbody>${slice.map(rcptRow).join("") || `<tr><td colspan="5" class="dim">No receipts held yet.</td></tr>`}</tbody></table>`;
+  const pager = document.getElementById("rcpt-pager");
+  if (pages <= 1) { pager.innerHTML = ""; return; }
+  pager.innerHTML = Array.from({ length: pages }, (_, i) => `<button class="pg${i + 1 === page ? " on" : ""}" data-p="${i + 1}">${i + 1}</button>`).join("");
+  pager.querySelectorAll("button").forEach(b => b.addEventListener("click", () => renderReceipts(+b.dataset.p)));
 }
 load();
 </script>

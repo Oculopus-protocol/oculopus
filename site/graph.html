@@ -144,7 +144,7 @@ async function loadPool() {
   POOL = OC_DEMO.providers.map(o => ({ address: o.address, id: String(o.agentId), name: o.name, cat: o.categoryLabel, score: o.score, uniq: o.uniq, role: "provider" }))
     .concat(OC_DEMO.buyers.map(o => ({ address: o.address, id: "—", name: o.name, cat: "Buyer", score: o.score, uniq: o.uniq, role: "buyer" })));
 }
-const byKey = k => { k = String(k).toLowerCase().trim(); if (!k) return null; return POOL.find(a => a.address === k || a.id === k || a.name === k) || POOL.find(a => a.address.includes(k) || (a.name && a.name.toLowerCase().includes(k))); };
+const byKey = k => { k = String(k).toLowerCase().trim(); if (!k) return null; return POOL.find(a => (a.address || "").toLowerCase() === k || String(a.id) === k || (a.name || "").toLowerCase() === k) || POOL.find(a => (a.address || "").toLowerCase().includes(k) || (a.name || "").toLowerCase().includes(k)); };
 
 // default agent avatar — neutral gray/white robot mark (matches Explore)
 const AGENT_SVG = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="8" width="14" height="11" rx="2.5"/><path d="M12 4.6v3.4"/><circle cx="12" cy="3.5" r="1.15" fill="currentColor" stroke="none"/><circle cx="9.5" cy="13" r="1.15" fill="currentColor" stroke="none"/><circle cx="14.5" cy="13" r="1.15" fill="currentColor" stroke="none"/></svg>`;
