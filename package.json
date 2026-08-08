@@ -6,7 +6,7 @@
   "type": "module",
   "scripts": {
     "typecheck": "tsc --noEmit",
-    "test": "tsx --test src/receipt.test.ts src/scorer.test.ts src/x402.test.ts src/agentCard.test.ts src/store.test.ts",
+    "test": "tsx --test src/receipt.test.ts src/scorer.test.ts src/x402.test.ts src/agentCard.test.ts src/store.test.ts src/proofReceipt.test.ts",
     "verify:memo": "tsx src/verifyMemo.ts",
     "node": "tsx src/node.ts",
     "node:indexer": "cross-env OCULOPUS_ROLE=indexer NODE_PORT=8790 OCULOPUS_STATE_DIR=data-indexer tsx src/node.ts",

@@ -149,7 +149,7 @@ agent inference calls actually live in.
 
 ```bash
 npm install
-npm test                     # 69 unit tests — receipts, scoring, tiers, x402, Merkle, store
+npm test                     # 76 unit tests — receipts, scoring, tiers, x402, Merkle, store, proof receipts
 npm run verify:memo          # 13 checks against a real Arc testnet transaction
 npm run register:identity    # mint ERC-8004 agentIds (needs .env)
 npm run demo                 # the full loop, with assertions (needs .env)
