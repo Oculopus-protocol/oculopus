@@ -27,3 +27,4 @@ deployments.local.json
 
 # build artifact from the mascot generator
 site/assets/_*.html
+site/home-redesign.html

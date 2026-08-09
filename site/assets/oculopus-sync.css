@@ -1,0 +1,58 @@
+/* Oculopus sync — overlays the shared Arkham design with the home-redesign look:
+   Sora display type, cool-blue accent, rounded frosted-glass boxes, floating glass nav.
+   Loaded AFTER oculopus.css (before each page's own inline <style>) on every inner page. */
+@import url("https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&display=swap");
+
+:root{
+  --cool:#7FA8D8; --cool-rgb:127,168,216;
+  --blue:#5B9DFF; --blue-rgb:91,157,255;
+  --accent:#7FA8D8;                                   /* accent hue → cool-blue */
+  --edge:rgba(255,255,255,.14); --edge-soft:rgba(255,255,255,.08);
+  --glass:linear-gradient(158deg,rgba(255,255,255,.075),rgba(255,255,255,.015));
+  --frameglass:linear-gradient(180deg,rgba(255,255,255,.10),rgba(255,255,255,.02));
+}
+
+/* ---- type ---- */
+body{font-family:"Sora",system-ui,-apple-system,sans-serif}
+h1,h2,h3,h4,.brand{font-family:"Sora",system-ui,sans-serif;letter-spacing:-.02em}
+
+/* ---- rounded corners (was sharp 3px) ---- */
+.btn,.card,.term,.code,.node,.launch,.stat-card,.feat .ic{border-radius:12px}
+.frame{border-radius:14px}
+.layer{border-radius:16px}
+.pill,.badge,.rail,.addr-tag,.card .n{border-radius:999px}
+
+/* ---- frosted-glass boxes (gradient + edge + inner light; no blur — they sit on flat dark) ---- */
+.card,.stat-card,.node,.layer,.frame{
+  background:var(--glass);border:1px solid var(--edge);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.22),0 22px 54px -32px rgba(0,0,0,.72)}
+.term,.code{border:1px solid var(--edge);border-radius:16px}
+
+/* ---- accent → cool-blue on the signature bits ---- */
+.eyebrow{color:var(--cool)}
+.eyebrow::before{background:linear-gradient(90deg,var(--cool),transparent);width:34px;height:1px}
+.layer{border-top:1px solid var(--edge)}             /* replace flat accent top-bar with glass edge */
+.subnav a.on{border-bottom-color:var(--cool)}
+.pill .dot{background:var(--blue);box-shadow:0 0 12px 2px rgba(var(--blue-rgb),.7)}
+
+/* ---- floating glass nav (restyle the existing .nav 3-zone; no markup change) ---- */
+header{position:sticky;top:0;background:transparent;border-bottom:none;-webkit-backdrop-filter:none;backdrop-filter:none;padding-top:14px}
+header .wrap{padding:0 clamp(20px,3.4vw,44px)}
+.nav{height:auto;min-height:68px;align-items:center}
+.brand{font-size:22px;font-weight:700;text-transform:none;gap:11px;color:var(--text)}
+.brand img{width:34px;height:34px}
+.links{
+  justify-self:center;height:54px;align-items:center;gap:4px;padding:0 10px;border-radius:14px;
+  background:var(--frameglass);border:1px solid var(--edge);
+  backdrop-filter:blur(20px) saturate(140%);-webkit-backdrop-filter:blur(20px) saturate(140%);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.30),inset 0 -1px 0 rgba(0,0,0,.35),0 12px 34px -14px rgba(0,0,0,.75)}
+.links a{color:var(--dim);font-size:13.5px;font-weight:500;padding:0 15px;height:54px;display:inline-flex;align-items:center;background:none!important;border-radius:0}
+.links a:hover,.links a.on{color:var(--text)}
+.nav .right>a{
+  background:var(--frameglass);border:1px solid var(--edge);border-radius:12px;color:var(--text);
+  backdrop-filter:blur(20px) saturate(140%);-webkit-backdrop-filter:blur(20px) saturate(140%);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.30),inset 0 -1px 0 rgba(0,0,0,.35),0 12px 34px -14px rgba(0,0,0,.75);
+  transition:all .18s}
+.nav .right>a:hover{background:#fff;color:#0A0D13;border-color:#fff;box-shadow:0 10px 28px -10px rgba(255,255,255,.4)}
+
+@media(max-width:900px){ .nav{min-height:60px} }
