@@ -114,8 +114,9 @@ function betaScore(
   now: number,
   standing?: Standing,
 ): ScoreBreakdown {
-  // 1. raw decayed weight per record, bucketed by counterparty
-  const perCounterparty = new Map<string, { pos: number; neg: number }>();
+  // 1. raw decayed weight per record, bucketed by counterparty. Trust is recorded here
+  //    but deliberately NOT applied yet — see step 2 for why the order matters.
+  const perCounterparty = new Map<string, { pos: number; neg: number; trust: number }>();
   for (const r of records) {
     const w =
       (r.witnessed ? SCORING.witnessWeight : 1) *
@@ -123,29 +124,34 @@ function betaScore(
       decay(now - r.deliveredAt) *
       valueWeight(r.usdc);
     const key = counterpartyOf(r).toLowerCase();
-    // Trust propagation: evidence is worth what its author is worth. A cluster of
-    // fresh wallets with no independent history of their own contributes almost
-    // nothing, WITHOUT punishing two agents who legitimately trade both ways.
-    const trust = standingOf(standing, key);
-    const b = perCounterparty.get(key) ?? { pos: 0, neg: 0 };
+    const b = perCounterparty.get(key) ?? { pos: 0, neg: 0, trust: standingOf(standing, key) };
     const c = classify(r);
-    b.pos += c.pos * w * trust;
-    // Negative evidence is NOT discounted by standing. Otherwise an attacker could
-    // silence real complaints by making the complainant look unimportant, and a
-    // brand-new buyer's genuine failure report would be worth nothing.
+    b.pos += c.pos * w;
     b.neg += c.neg * w;
     perCounterparty.set(key, b);
   }
 
-  // 2. absolute per-counterparty cap: each counterparty contributes at most capMass
-  //    worth of POSITIVE evidence. Negative evidence is deliberately NOT capped — an
-  //    attacker must not be able to launder away failures behind the cap, and honest
-  //    failures should always count in full.
+  // 2. Cap FIRST, then discount by trust.
+  //
+  //    Trust propagation: evidence is worth what its author is worth. A cluster of fresh
+  //    wallets with no independent history of their own contributes almost nothing,
+  //    WITHOUT punishing two agents who legitimately trade both ways.
+  //
+  //    The order is the whole defence. Discounting before the cap lets an attacker spend
+  //    their way out of it: a counterparty at trust 0.25 simply emits four times as many
+  //    receipts until the post-trust mass reaches the cap, and the discount vanishes
+  //    entirely — measured at zero penalty from five receipts per wallet upward. Capping
+  //    the RAW mass first bounds what one counterparty can ever say, and trust then
+  //    scales that bound, so extra volume buys nothing once the cap is reached.
+  //
+  //    Negative evidence is neither capped nor discounted: an attacker must not be able to
+  //    launder failures away behind the cap, nor silence a real complaint by making the
+  //    complainant look unimportant, and a brand-new buyer's genuine failure report has to
+  //    count in full.
   let pos = 0;
   let neg = 0;
   for (const b of perCounterparty.values()) {
-    const scale = b.pos > SCORING.counterpartyCapMass ? SCORING.counterpartyCapMass / b.pos : 1;
-    pos += b.pos * scale;
+    pos += Math.min(b.pos, SCORING.counterpartyCapMass) * b.trust;
     neg += b.neg;
   }
 
