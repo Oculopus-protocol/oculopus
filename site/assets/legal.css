@@ -1,0 +1,59 @@
+/* Shared layout for the legal pages (/terms, /privacy).
+   A sidebar of contents beside long prose — these documents get read by section, not
+   top to bottom, so the section you are in should always be visible. */
+
+.legal-head{margin-bottom:30px;}
+.legal-head .meta{font:10px "Overpass Mono",monospace;letter-spacing:2px;text-transform:uppercase;color:var(--brand);margin-bottom:10px;}
+.legal-head h1{font-size:38px;letter-spacing:-1.2px;margin-bottom:10px;}
+.legal-head .sub{font-size:13px;color:var(--dim);}
+.legal-head .sub b{color:var(--text);font-weight:600;}
+
+.legal-grid{display:grid;grid-template-columns:262px minmax(0,1fr);gap:52px;align-items:start;}
+
+.legal-nav{position:sticky;top:88px;background:var(--card);border:1px solid var(--line);
+  border-radius:14px;padding:15px 10px;max-height:calc(100vh - 120px);overflow-y:auto;
+  scrollbar-width:none;}
+.legal-nav::-webkit-scrollbar{display:none;}
+.legal-nav .hd{font:10px "Overpass Mono",monospace;letter-spacing:2px;text-transform:uppercase;
+  color:var(--faint);padding:0 11px;margin-bottom:10px;}
+.legal-nav a{display:flex;gap:11px;align-items:baseline;padding:7px 11px;border-radius:8px;
+  font-size:13px;line-height:1.4;color:var(--dim);transition:color .14s,background .14s;}
+.legal-nav a .n{font:10px "Overpass Mono",monospace;letter-spacing:.5px;color:var(--faint);flex:none;}
+.legal-nav a:hover{color:var(--text);background:var(--surface);text-decoration:none;}
+.legal-nav a.on{color:var(--brand);background:var(--brand-soft);}
+.legal-nav a.on .n{color:var(--brand);}
+
+.legal{max-width:70ch;}
+.legal .lead-p{font-size:16.5px;color:var(--dim);line-height:1.7;margin-bottom:6px;
+  border-left:3px solid var(--line-strong);padding-left:16px;}
+.legal h2{font-size:21px;margin:40px 0 11px;scroll-margin-top:92px;}
+.legal h3{font-size:15px;margin:24px 0 7px;}
+.legal p{color:var(--dim);font-size:15px;line-height:1.75;margin-bottom:12px;}
+.legal ul{list-style:none;margin:0 0 14px;}
+.legal ul li{position:relative;padding-left:22px;color:var(--dim);font-size:15px;
+  line-height:1.7;margin-bottom:7px;}
+.legal ul li::before{content:"–";position:absolute;left:2px;color:var(--brand);}
+.legal li b,.legal p b{color:var(--text);font-weight:600;}
+.legal a{color:var(--brand-2);}
+.legal a:hover{text-decoration:underline;}
+
+.legal .callout{border-left:3px solid var(--brand);padding:2px 0 2px 16px;margin:18px 0 20px;}
+.legal .callout p{color:var(--text);font-size:16px;margin-bottom:8px;}
+
+.legal table.t{border-collapse:collapse;font-size:14px;margin:18px 0;border:1px solid var(--line);
+  border-radius:10px;overflow:hidden;width:100%;}
+.legal table.t td,.legal table.t th{text-align:left;padding:9px 14px;border-bottom:1px solid var(--line);
+  vertical-align:top;color:var(--dim);line-height:1.55;}
+.legal table.t th{font:11px "Overpass Mono",monospace;letter-spacing:1px;text-transform:uppercase;
+  color:var(--faint);font-weight:500;background:rgba(255,255,255,.02);}
+.legal table.t tr:last-child td{border-bottom:none;}
+.legal table.t td:first-child{color:var(--text);}
+.legal .tw{overflow-x:auto;}
+
+/* Below this the sidebar stops being a sidebar: it becomes a plain index above the text,
+   because a sticky rail on a phone eats the screen the prose needs. */
+@media (max-width:1000px){
+  .legal-grid{grid-template-columns:1fr;gap:26px;}
+  .legal-nav{position:static;max-height:none;}
+  .legal-head h1{font-size:31px;}
+}

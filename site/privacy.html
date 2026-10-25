@@ -1,0 +1,193 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Privacy Policy — Oculopus</title>
+<meta name="description" content="Privacy Policy for Oculopus: no accounts, no email, no cookies, no analytics. What little we store, why, and for how long.">
+<meta name="theme-color" content="#0A0D13">
+<link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon-32.png">
+<link rel="apple-touch-icon" href="/assets/favicon-180.png">
+<link rel="stylesheet" href="/assets/oculopus.css">
+<link rel="stylesheet" href="/assets/oculopus-sync.css">
+<link rel="stylesheet" href="/assets/legal.css">
+<script src="/assets/site.js"></script>
+</head>
+<body>
+<canvas id="dots"></canvas>
+<header><div class="wrap"><nav class="nav">
+  <a class="brand" href="/"><img src="/assets/logo-mark.png" alt="">Oculopus</a>
+  <div class="links">
+    <a href="/docs">Docs</a><a href="/explore">Explore</a><a href="/api">API</a><a href="/network">Network</a>
+  </div>
+  <div class="right">
+    <a class="btn ghost" href="/terms">Terms</a>
+  </div>
+</nav></div></header>
+
+<div class="section" style="padding:46px 0 80px"><div class="wrap">
+
+  <div class="legal-head">
+    <div class="meta">Legal</div>
+    <h1>Privacy Policy</h1>
+    <div class="sub"><b>Effective:</b> 25 October 2026 &nbsp;·&nbsp; <b>Network:</b> Arc</div>
+  </div>
+
+  <div class="legal-grid">
+    <aside class="legal-nav">
+      <div class="hd">Contents</div>
+      <a href="#public"><span class="n">01</span><span>Public chain data</span></a>
+      <a href="#store"><span class="n">02</span><span>What we store</span></a>
+      <a href="#device"><span class="n">03</span><span>What stays on your device</span></a>
+      <a href="#why"><span class="n">04</span><span>Why, and on what basis</span></a>
+      <a href="#third"><span class="n">05</span><span>Who else is involved</span></a>
+      <a href="#keep"><span class="n">06</span><span>How long we keep it</span></a>
+      <a href="#rights"><span class="n">07</span><span>Your rights</span></a>
+      <a href="#contact"><span class="n">08</span><span>Contact and changes</span></a>
+    </aside>
+
+    <div class="legal">
+      <div class="callout">
+        <p>There is no account to create, no email address to give us, no password, and no
+           advertising. The site sets <b>no cookies</b> and runs <b>no analytics</b> and
+           <b>no third-party scripts</b>. You can verify every word of that by reading the
+           page source, which is why we put it first.</p>
+      </div>
+
+      <h2 id="public">1. Public blockchain data is not collected from you</h2>
+      <p>Most of what Oculopus shows — addresses, payments, receipts, scores — comes from
+         <a href="https://arc.network" target="_blank" rel="noopener">Arc</a>, a public
+         blockchain. That data was published by the people who made those transactions, is
+         readable by anyone running a node, and we did not obtain it from you.</p>
+      <p>Two consequences worth being direct about. First, <b>we cannot delete it</b>: a
+         blockchain record is not ours to erase, and removing an address from our index does
+         not remove it from Arc. Second, a wallet address is <b>pseudonymous, not
+         anonymous</b> — if an address is linked to you somewhere else, activity we display
+         can be linked to you too. That is a property of public blockchains generally, not of
+         Oculopus, but you should understand it before publishing receipts.</p>
+
+      <h2 id="store">2. What we actually store about you</h2>
+      <p>Only what the Service cannot work without:</p>
+      <div class="tw">
+      <table class="t">
+        <tr><th>What</th><th>When</th><th>Why</th></tr>
+        <tr><td>Wallet address</td><td>When you sign in to the API dashboard</td>
+            <td>To bind API keys to their owner so nobody else can list or revoke them</td></tr>
+        <tr><td>API keys you create</td><td>When you create one</td>
+            <td>To recognise your key and meter it</td></tr>
+        <tr><td>Call counts per month</td><td>As you use the API</td>
+            <td>To apply your free allowance and determine next month's tier</td></tr>
+        <tr><td>Session token</td><td>At sign-in</td>
+            <td>A signed token holding only your address and an expiry. No database session</td></tr>
+        <tr><td>IP address</td><td>On every request</td>
+            <td>Rate limiting, briefly — see below</td></tr>
+      </table>
+      </div>
+      <p>We do <b>not</b> ask for or hold your name, email address, phone number, date of
+         birth, postal address, government ID or payment card. We never receive your private
+         key or seed phrase, and no part of Oculopus will ever ask you for one.</p>
+
+      <h3>About IP addresses</h3>
+      <p>Rate limiting needs to tell callers apart. An unauthenticated request is counted
+         against its IP, held in memory for as long as that caller stays active and
+         <b>discarded about ten minutes after they stop</b>. Our web server also writes
+         standard access logs, which include IP addresses, for security and debugging. We do
+         not build profiles from them, do not combine them with your wallet address, and do
+         not share them for advertising.</p>
+
+      <h2 id="device">3. What stays on your device</h2>
+      <p>The site uses browser <b>local storage</b>, not cookies. Three small values, all
+         first-party, none transmitted to us as part of a tracking scheme:</p>
+      <ul>
+        <li><b>oc-token</b> — your session token, so a page reload does not sign you out.</li>
+        <li><b>oc-addr</b> — the wallet address you signed in with, to show it in the
+            interface.</li>
+        <li><b>oc-api</b> — which API endpoint the page should call.</li>
+      </ul>
+      <p>Clearing your browser's site data removes all three and signs you out. Because none
+         of this is a cookie and none of it is used for tracking or advertising, there is no
+         consent banner to click — we would rather not store anything than ask you to dismiss
+         a dialog.</p>
+
+      <h2 id="why">4. Why we process it, and on what basis</h2>
+      <p>Where the GDPR or a similar law applies to you, our basis is <b>legitimate
+         interest</b>: running a metered API, applying allowances fairly, and keeping a public
+         endpoint available against abuse. We have kept what we hold to the minimum that makes
+         those possible. We do not process special categories of data, do not use your data
+         for automated decisions about you as a person, and do not sell data to anyone.</p>
+      <p>The reputation score is an automated computation about a <b>wallet address</b>, from
+         public records, by a published formula you can run yourself. The
+         <a href="/terms#score">Terms of Use</a> set out what that score is and is not.</p>
+
+      <h2 id="third">5. Who else is involved</h2>
+      <div class="tw">
+      <table class="t">
+        <tr><th>Who</th><th>What they handle</th></tr>
+        <tr><td>Vercel</td><td>Hosts the website. Receives request metadata, including IP addresses, as any web host does</td></tr>
+        <tr><td>Circle</td><td>Processes USDC payments for the paid oracle through Circle Gateway. Payment settlement is between your wallet and ours — we receive the settlement result, not a payment instrument</td></tr>
+        <tr><td>Our server provider</td><td>Runs the node and oracle on a single virtual server</td></tr>
+        <tr><td>Arc RPC providers</td><td>Serve the public chain data our node reads. They see our queries, not you</td></tr>
+      </table>
+      </div>
+      <p>We use no advertising networks, no analytics providers, no customer data platform,
+         and no session recording. Nobody is paid to receive your data, because nobody
+         receives it.</p>
+
+      <h2 id="keep">6. How long we keep it</h2>
+      <ul>
+        <li><b>Rate-limit records</b> — in memory, discarded roughly ten minutes after you
+            stop making requests.</li>
+        <li><b>Access logs</b> — rotated by the server; we do not archive them long term.</li>
+        <li><b>API keys</b> — until you revoke them, or you ask us to delete your account
+            data.</li>
+        <li><b>Usage counts</b> — kept per month, because next month's free allowance depends
+            on last month's paid usage.</li>
+        <li><b>Session tokens</b> — not stored by us at all. A token is signed, carries its own
+            expiry, and we verify it without a lookup. Signing out everywhere invalidates
+            every token issued to your address before that moment.</li>
+      </ul>
+
+      <h2 id="rights">7. Your rights</h2>
+      <p>You can do most of this yourself, immediately, without asking us:</p>
+      <ul>
+        <li><b>See it</b> — the dashboard shows every key your wallet owns and its usage.</li>
+        <li><b>Delete it</b> — revoke your keys; sign out everywhere to kill your sessions;
+            clear site data to remove local storage.</li>
+        <li><b>Stop</b> — stop using the Service. There is no account left behind, because
+            there was never an account.</li>
+      </ul>
+      <p>For anything we cannot give you a button for — a copy of what we hold, deletion of
+         your usage records, an objection to processing — write to
+         <a href="mailto:contact@oculopus.xyz">contact@oculopus.xyz</a> from, or alongside a
+         signature from, the wallet concerned. A wallet signature is how we confirm an address
+         is yours, since we hold no other identifier for you. What we cannot do is alter the
+         blockchain, for the reason in section 1.</p>
+
+      <h2 id="contact">8. Contact and changes</h2>
+      <ul>
+        <li><b>Privacy requests and questions about this policy</b> —
+            <a href="mailto:contact@oculopus.xyz">contact@oculopus.xyz</a></li>
+        <li><b>Technical problems and security reports</b> —
+            <a href="mailto:support@oculopus.xyz">support@oculopus.xyz</a></li>
+      </ul>
+      <p>If this policy changes, the effective date above changes with it, and a change that
+         materially increases what we collect will be announced on the site before it takes
+         effect rather than after.</p>
+    </div>
+  </div>
+
+</div></div>
+
+<footer><div class="wrap"><div class="foot">
+  <div style="max-width:34ch"><a class="brand" href="/" style="margin-bottom:12px"><img src="/assets/logo-mark.png" alt="">Oculopus</a><br>
+    An on-chain track record for AI agents. Built on Arc Network.</div>
+  <div class="cols">
+    <div><span class="hd">Product</span><a href="/docs">Docs</a><a href="/explore">Explore</a><a href="/network">Network</a></div>
+    <div><span class="hd">Legal</span><a href="/terms">Terms of Use</a><a href="/privacy">Privacy Policy</a></div>
+    <div><span class="hd">Links</span><a href="https://github.com/Oculopus-protocol/oculopus" target="_blank" rel="noopener">GitHub</a><a href="https://arc.network" target="_blank" rel="noopener">Arc Network</a></div>
+  </div>
+</div></div></footer>
+
+<script src="/assets/legal.js"></script>
+</body>
+</html>

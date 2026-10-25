@@ -1,0 +1,201 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Terms of Use — Oculopus</title>
+<meta name="description" content="Terms of Use for Oculopus: what the reputation score is and is not, API and payment terms, acceptable use, and the limits of our liability.">
+<meta name="theme-color" content="#0A0D13">
+<link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon-32.png">
+<link rel="apple-touch-icon" href="/assets/favicon-180.png">
+<link rel="stylesheet" href="/assets/oculopus.css">
+<link rel="stylesheet" href="/assets/oculopus-sync.css">
+<link rel="stylesheet" href="/assets/legal.css">
+<script src="/assets/site.js"></script>
+</head>
+<body>
+<canvas id="dots"></canvas>
+<header><div class="wrap"><nav class="nav">
+  <a class="brand" href="/"><img src="/assets/logo-mark.png" alt="">Oculopus</a>
+  <div class="links">
+    <a href="/docs">Docs</a><a href="/explore">Explore</a><a href="/api">API</a><a href="/network">Network</a>
+  </div>
+  <div class="right">
+    <a class="btn ghost" href="/privacy">Privacy</a>
+  </div>
+</nav></div></header>
+
+<div class="section" style="padding:46px 0 80px"><div class="wrap">
+
+  <div class="legal-head">
+    <div class="meta">Legal</div>
+    <h1>Terms of Use</h1>
+    <div class="sub"><b>Effective:</b> 25 October 2026 &nbsp;·&nbsp; <b>Network:</b> Arc</div>
+  </div>
+
+  <div class="legal-grid">
+    <aside class="legal-nav">
+      <div class="hd">Contents</div>
+      <a href="#what"><span class="n">01</span><span>What Oculopus is</span></a>
+      <a href="#score"><span class="n">02</span><span>What a score is not</span></a>
+      <a href="#custody"><span class="n">03</span><span>No custody</span></a>
+      <a href="#api"><span class="n">04</span><span>API access and keys</span></a>
+      <a href="#pay"><span class="n">05</span><span>Payments</span></a>
+      <a href="#use"><span class="n">06</span><span>Acceptable use</span></a>
+      <a href="#change"><span class="n">07</span><span>Changes to scoring</span></a>
+      <a href="#warranty"><span class="n">08</span><span>No warranty</span></a>
+      <a href="#liability"><span class="n">09</span><span>Limitation of liability</span></a>
+      <a href="#contact"><span class="n">10</span><span>Disputes and contact</span></a>
+    </aside>
+
+    <div class="legal">
+      <p class="lead-p">These terms cover the Oculopus website, the public node API, and the
+         paid reputation oracle (together, the <b>Service</b>). Using any of them means you
+         accept them.</p>
+
+      <h2 id="what">1. What Oculopus is</h2>
+      <p>Oculopus reads public data from <a href="https://arc.network" target="_blank" rel="noopener">Arc</a>
+         and turns settled USDC payments into signed receipts, then computes a reputation
+         score for the parties to those payments. Every input is already public on a
+         blockchain, and the scoring function is open source, so anyone can recompute any
+         score themselves. A runner for doing exactly that is published at
+         <a href="https://github.com/Oculopus-protocol/node" target="_blank" rel="noopener">Oculopus-protocol/node</a>.</p>
+      <p>Oculopus deploys no smart contract of its own. It issues no token. It operates no
+         exchange and runs no lending market.</p>
+
+      <h2 id="score">2. What a score is — and what it is not</h2>
+      <div class="callout">
+        <p>A score is an <b>automated statistical estimate</b> computed from public blockchain
+           records by a published formula. It is not a statement of fact about any person or
+           business, not a credit rating in any regulated sense, and not financial,
+           investment, legal or tax advice.</p>
+      </div>
+      <p>Specific limits you should understand before relying on one:</p>
+      <ul>
+        <li>A score reflects <b>only</b> evidence Oculopus has indexed. Activity on other
+            chains, off-chain dealings and anything outside the receipt format are invisible
+            to it.</li>
+        <li>Evidence decays on a 14-day half-life, so a score describes <b>recent</b>
+            behaviour. A high score is not a prediction, and a low score is not an
+            accusation.</li>
+        <li>A new address scores 25 because it has no history, not because anything is wrong
+            with it. Absence of evidence is not evidence of bad conduct.</li>
+        <li>No scoring model is immune to manipulation. Oculopus publishes its anti-gaming
+            measures and their known limits in the <a href="/docs">documentation</a>, and you
+            should read them before treating a score as decisive.</li>
+      </ul>
+      <p>Any decision you take after reading a score — extending credit, hiring an agent,
+         routing a payment, declining to — is <b>your decision</b>, taken on your own
+         assessment. Oculopus is one input, never the whole answer.</p>
+      <p>If you believe a score about you is wrong, write to
+         <a href="mailto:contact@oculopus.xyz">contact@oculopus.xyz</a>. Because the formula
+         and the inputs are both public, a disagreement about a score is usually resolvable by
+         recomputing it, and we would rather hear about it than not.</p>
+
+      <h2 id="custody">3. Oculopus never holds your assets</h2>
+      <p>The Service takes no custody of funds, tokens or private keys. Signing in uses a
+         wallet signature to prove address ownership; it never asks for or receives a private
+         key or a seed phrase, and no part of Oculopus will ever ask you for one. Payments for
+         the paid oracle settle directly between your wallet and the Oculopus treasury through
+         Circle Gateway. You remain in control of your own wallet at all times, and you are
+         responsible for its security.</p>
+
+      <h2 id="api">4. API access and keys</h2>
+      <p>Free reads from the public node are offered as a public good, subject to rate limits.
+         The paid oracle is metered. An API key you create is bound to the wallet that created
+         it.</p>
+      <ul>
+        <li>Treat a key like a password. You are responsible for calls made with your key,
+            including calls you did not intend; revoke a key immediately if it is exposed.</li>
+        <li>Free allowances are per wallet, not per key. Creating more keys does not create
+            more allowance, and attempting to multiply an allowance by creating wallets is a
+            breach of section 6.</li>
+        <li>Rate limits and monthly allowances are published on the <a href="/api">API page</a>
+            and may be adjusted. We will not reduce a paid allowance you have already bought
+            within its paid period.</li>
+        <li>We may suspend a key or a wallet that is breaking these terms, and will say why.</li>
+      </ul>
+
+      <h2 id="pay">5. Payments</h2>
+      <p>Paid calls settle in USDC over the x402 protocol through Circle Gateway, on-chain and
+         in real time. By their nature those settlements are <b>final and non-reversible</b>:
+         there is no mechanism for Oculopus to reverse one, and paid calls are non-refundable
+         except where refusing a refund would be unlawful.</p>
+      <p>You are responsible for any taxes arising on your side of a transaction. Prices are
+         quoted in USDC and may change; a change applies to calls made after it is published.</p>
+
+      <h2 id="use">6. Acceptable use</h2>
+      <p>Do not:</p>
+      <ul>
+        <li><b>Manufacture evidence.</b> Creating receipts for payments that are not real
+            commercial activity — self-dealing between wallets you control, wash trading, or
+            coordinating with others to inflate or deflate a score — is the one abuse that
+            damages every other user of the Service.</li>
+        <li><b>Attack availability.</b> No attempt to exceed, evade or circumvent rate limits,
+            and no deliberate load intended to degrade the Service for others.</li>
+        <li><b>Misrepresent a score.</b> Do not present an Oculopus score as a regulated credit
+            rating, as a guarantee, or as a verification of identity, licensing or solvency.</li>
+        <li><b>Break the law with it.</b> No use of the Service for unlawful purposes, and no
+            use that would breach sanctions applicable to you or to us.</li>
+        <li><b>Impersonate.</b> Do not claim to be Oculopus, or to be endorsed or certified
+            by it.</li>
+      </ul>
+      <p>Reading, copying, recomputing, republishing and criticising our scores is expressly
+         permitted. A reputation system nobody can check is not worth having.</p>
+
+      <h2 id="change">7. Changes to the scoring formula</h2>
+      <p>The scoring model will change as we find weaknesses in it — we have already changed it
+         to close one — and a change can move published scores, sometimes materially. We
+         publish what changed and why. Do not build anything that assumes a score is stable,
+         and do not treat a past score as a commitment about a future one.</p>
+      <p>We may also change these terms. The effective date at the top always shows the current
+         version; continuing to use the Service after a change means you accept it.</p>
+
+      <h2 id="warranty">8. No warranty</h2>
+      <p>The Service is provided <b>as is</b>, without warranty of any kind. We do not promise
+         it will be available, uninterrupted, complete, current or error-free. In particular,
+         the node depends on third-party RPC endpoints and on Arc itself, and an indexing delay
+         or gap can make a score stale or incomplete without notice.</p>
+
+      <h2 id="liability">9. Limitation of liability</h2>
+      <p>To the fullest extent the law allows, Oculopus is not liable for lost profits, lost
+         opportunity, lost data, or any indirect or consequential loss arising from your use of
+         the Service or from any decision taken in reliance on a score. Where liability cannot
+         be excluded, it is limited to the greater of the amount you paid us for the Service in
+         the three months before the claim, or 100 USDC.</p>
+      <p>Nothing here excludes liability that cannot lawfully be excluded, including for fraud.</p>
+
+      <h2 id="contact">10. Disputes, and how to reach us</h2>
+      <p>If something goes wrong, tell us first. Most disputes about this Service are disputes
+         about a number, and because both the formula and its inputs are public, they are
+         usually settled by recomputing the score rather than by arguing about it. We aim to
+         answer substantive questions within five working days.</p>
+      <ul>
+        <li><b>Terms, disputes, and questions about a score</b> —
+            <a href="mailto:contact@oculopus.xyz">contact@oculopus.xyz</a></li>
+        <li><b>Technical problems and security reports</b> —
+            <a href="mailto:support@oculopus.xyz">support@oculopus.xyz</a></li>
+      </ul>
+      <p>If you have found a security issue, please tell us before telling anyone else. We will
+         not pursue anyone who reports a vulnerability in good faith and gives us a reasonable
+         chance to fix it.</p>
+      <p>See also the <a href="/privacy">Privacy Policy</a>, which explains what little data the
+         Service holds about you.</p>
+    </div>
+  </div>
+
+</div></div>
+
+<footer><div class="wrap"><div class="foot">
+  <div style="max-width:34ch"><a class="brand" href="/" style="margin-bottom:12px"><img src="/assets/logo-mark.png" alt="">Oculopus</a><br>
+    An on-chain track record for AI agents. Built on Arc Network.</div>
+  <div class="cols">
+    <div><span class="hd">Product</span><a href="/docs">Docs</a><a href="/explore">Explore</a><a href="/network">Network</a></div>
+    <div><span class="hd">Legal</span><a href="/terms">Terms of Use</a><a href="/privacy">Privacy Policy</a></div>
+    <div><span class="hd">Links</span><a href="https://github.com/Oculopus-protocol/oculopus" target="_blank" rel="noopener">GitHub</a><a href="https://arc.network" target="_blank" rel="noopener">Arc Network</a></div>
+  </div>
+</div></div></footer>
+
+<script src="/assets/legal.js"></script>
+</body>
+</html>
