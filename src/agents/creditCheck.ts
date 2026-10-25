@@ -8,7 +8,8 @@
 // balance from its wallet if needed. Nobody clicks anything.
 import "dotenv/config";
 import { GatewayClient } from "@circle-fin/x402-batching/client";
-import { RPC_URLS } from "../config.js";
+import { NETWORK, RPC_URLS } from "../config.js";
+import { gatewayConfig } from "../x402.js";
 
 const ORACLE = process.env.ORACLE_URL ?? `http://localhost:${process.env.ORACLE_PORT ?? 8791}`;
 const PK = process.env.BUYER_PRIVATE_KEY as `0x${string}` | undefined;
@@ -25,7 +26,9 @@ if (!/^0x[0-9a-fA-F]{40}$/.test(counterparty)) throw new Error(`bad counterparty
 async function main(): Promise<void> {
   // RPC_URLS[0] is a keyed endpoint when OCULOPUS_RPC_URLS is set, else the public Arc RPC
   // (which rate-limits hard once a node is also reading it — set a keyed one).
-  const gw = new GatewayClient({ chain: "arcTestnet", privateKey: PK!, rpcUrl: RPC_URLS[0] });
+  // Circle resolves this against viem's chain registry, which carries both arc (5042)
+  // and arcTestnet (5042002) — so the agent follows OCULOPUS_NETWORK like everything else.
+  const gw = new GatewayClient({ chain: gatewayConfig(NETWORK).chain, privateKey: PK!, rpcUrl: RPC_URLS[0] });
   log("wallet", gw.address, "· checking counterparty", counterparty);
 
   // 1. Fund the agent's own Gateway balance if it can't cover a call — the agent managing

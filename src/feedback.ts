@@ -15,7 +15,7 @@
 // everyone's behalf, every entry would share one client address and our own
 // per-counterparty cap would (correctly) collapse the score to noise.
 import { createPublicClient, createWalletClient, encodeFunctionData, fallback, http, type Account, type Address, type Hex } from "viem";
-import { arcTestnet, CONTRACTS, RPC_URLS } from "./config.js";
+import { arcChain, CONTRACTS, RPC_URLS } from "./config.js";
 import { ERC8004, reputationAbi, identityAbi } from "./erc8004.js";
 import { multicall3FromAbi } from "./abi.js";
 
@@ -52,7 +52,7 @@ export interface FeedbackInput {
  */
 export async function agentOwnsAddress(agentId: bigint, provider: Address): Promise<boolean> {
   const pub = createPublicClient({
-    chain: arcTestnet,
+    chain: arcChain,
     transport: fallback(RPC_URLS.map((u) => http(u, { retryCount: 4, retryDelay: 1500 }))),
   });
   const wallet = await pub.readContract({
@@ -109,7 +109,7 @@ export async function publishFeedbackBatch(account: Account, inputs: FeedbackInp
   if (!inputs.length) throw new Error("publishFeedbackBatch: nothing to publish");
   const wallet = createWalletClient({
     account,
-    chain: arcTestnet,
+    chain: arcChain,
     transport: fallback(RPC_URLS.map((u) => http(u, { retryCount: 4, retryDelay: 1500 }))),
   });
   return wallet.writeContract({
@@ -129,7 +129,7 @@ export async function publishFeedbackBatch(account: Account, inputs: FeedbackInp
 export async function publishFeedback(account: Account, input: FeedbackInput): Promise<Hex> {
   const wallet = createWalletClient({
     account,
-    chain: arcTestnet,
+    chain: arcChain,
     transport: fallback(RPC_URLS.map((u) => http(u, { retryCount: 4, retryDelay: 1500 }))),
   });
   return wallet.sendTransaction({ to: ERC8004.reputation, data: encodeFeedback(input) });

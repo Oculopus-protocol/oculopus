@@ -25,7 +25,7 @@ import {
   parseUnits,
   type Hex,
 } from "viem";
-import { arcTestnet, CHAIN_ID, CONTRACTS, GENESIS_SCAN_BLOCK, RPC_URLS } from "./config.js";
+import { arcChain, CHAIN_ID, CONTRACTS, GENESIS_SCAN_BLOCK, HAS_REGISTRIES, NETWORK, RPC_URLS } from "./config.js";
 import { memoAbi, erc20Abi, multicall3FromAbi } from "./abi.js";
 import { verifySignedReceipt, receiptHash, decodeMemoData, type SignedReceipt } from "./receipt.js";
 import { scoreProvider, scoreBuyer, propagate, type ReceiptRecord, type ScoreBreakdown } from "./scorer.js";
@@ -181,6 +181,20 @@ const state: State = existsSync(STATE_PATH)
   ? (JSON.parse(readFileSync(STATE_PATH, "utf8")) as State)
   : { lastBlock: startBlock - 1, receipts: {}, jobs: {}, x402: {}, agents: {}, agentIds: {} };
 
+// An unverified receipt sits in memory AND on disk until the indexer finds its anchor.
+// Storing one needs only a single signature on purpose — a buyer has to be able to file
+// a unilateral failure — so this is the one write path an anonymous caller controls.
+// Bound it instead of demanding both signatures, which would kill that feature.
+const MAX_PENDING_RECEIPTS = Number(process.env.OCULOPUS_MAX_PENDING_RECEIPTS ?? 5000);
+let pendingReceipts = Object.values(state.receipts).filter((s) => !s.verified).length;
+
+// Scoring the whole network is the most expensive thing this process does, and /scores
+// is public and unauthenticated: without a cache a single client can pin the CPU and
+// take the site and the oracle down with it. Any state write clears the cache, so a
+// freshly anchored receipt still shows up immediately rather than after the TTL.
+const SCORES_TTL_MS = Number(process.env.OCULOPUS_SCORES_TTL_MS ?? 30_000);
+let scoresCache: { at: number; body: unknown } | null = null;
+
 // OCULOPUS_START_BLOCK is also a floor on an EXISTING index: raise it above where we
 // have scanned to fast-forward a slow backfill to recent activity (e.g. jump millions
 // of genesis blocks straight to where fresh receipts are). Forward only — a value at
@@ -208,6 +222,7 @@ function saveState(): void {
   mkdirSync(STATE_DIR, { recursive: true });
   writeFileSync(STATE_PATH, JSON.stringify(state, null, 2));
   store.setNumber("lastBlock", state.lastBlock);
+  scoresCache = null; // state moved — anything cached from it is stale
 }
 
 function syncStateToStore(): void {
@@ -230,7 +245,7 @@ function syncStateToStore(): void {
 }
 
 const pub = createPublicClient({
-  chain: arcTestnet,
+  chain: arcChain,
   transport: fallback(RPC_URLS.map((u) => http(u, { retryCount: 4, retryDelay: 1500 }))),
 });
 
@@ -240,6 +255,7 @@ const pub = createPublicClient({
 // is re-checked against the chain here, so a doctored file cannot list an agent whose
 // wallet does not actually own that agentId.
 async function loadDirectoryFromErc8004(): Promise<void> {
+  if (!HAS_REGISTRIES) return; // no ERC-8004 registry on this network
   // Two sources, both ending at the same on-chain check below:
   //   OCULOPUS_AGENT_IDS  — a bare list of agentIds; everything else is read from
   //     the registry. This is what a fresh clone on a server uses, since data/ is
@@ -304,11 +320,13 @@ async function scan(): Promise<void> {
       // missed old agents and, in bulk, is what stalled discovery). Indexed before
       // receipts so a same-chunk registration is already resolvable when its receipt
       // verifies.
-      for (const reg of await pub.getLogs({ address: ERC8004.identity, event: identityAbi[7], fromBlock: from, toBlock: to })) {
-        const owner = (reg.args.owner as string).toLowerCase();
-        const identity = { agentId: String(reg.args.agentId), agentURI: reg.args.agentURI as string };
-        state.agentIds![owner] = identity;
-        store.putAgentId(owner, identity.agentId, identity.agentURI, Number(reg.blockNumber));
+      if (HAS_REGISTRIES) {
+        for (const reg of await pub.getLogs({ address: ERC8004.identity, event: identityAbi[7], fromBlock: from, toBlock: to })) {
+          const owner = (reg.args.owner as string).toLowerCase();
+          const identity = { agentId: String(reg.args.agentId), agentURI: reg.args.agentURI as string };
+          state.agentIds![owner] = identity;
+          store.putAgentId(owner, identity.agentId, identity.agentURI, Number(reg.blockNumber));
+        }
       }
 
       // Memo receipts
@@ -372,6 +390,7 @@ async function findFundingAmount(jobId: bigint, settledAt: bigint): Promise<stri
  * can reconstruct from the chain alone.
  */
 async function indexJobs(from: bigint, to: bigint): Promise<void> {
+  if (!HAS_REGISTRIES) return; // no ERC-8183 job registry on this network
   // Capture escrow amounts as they are funded. getJob() cannot be used for this: once
   // the job completes, payment is released and `budget` reads back as 0, which would
   // silently record every settled job as a $0 job.
@@ -441,6 +460,7 @@ async function verifyOnChainReceipt(memoId: Hex, sender: Hex, tx: Hex, block: nu
   // providerSigned is recorded even though check 3 waives it for failures: a buyer
   // that keeps filing UNILATERAL failures is the defamation signal on the buyer side.
   stored.verified = { block, tx, witnessed, memoIndex, providerSigned: v.providerSigned };
+  pendingReceipts = Math.max(0, pendingReceipts - 1);
   store.putReceipt({
     hash: memoId, buyer: r.who.buyer, provider: r.who.provider, service: r.what.service,
     usdc: r.howMuch.usdc, outcome: r.effect.outcome, deliveredAt: r.when.deliveredAt,
@@ -476,6 +496,7 @@ async function ensureAgentListed(provider: string, serviceSlug: string, endpoint
 // INDEXED owner, so this is a filtered getLogs — but the RPC caps each request at
 // 1000 blocks, so a bounded lookback from the head rather than a full-history scan.
 async function findAgentId(owner: Hex): Promise<{ agentId: string; agentURI: string } | null> {
+  if (!HAS_REGISTRIES) return null; // no registry to look an agentId up in — skip the lookback burst
   const key = owner.toLowerCase();
   // Fast path: the scan indexes every Registration into state.agentIds, so any agent
   // whose registration we have already scanned resolves with no RPC at all.
@@ -566,6 +587,7 @@ function log_reject(memoId: Hex, why: string): void {
 // implied — so the two numbers answer different questions and the dashboard shows
 // both rather than silently preferring ours.
 async function refreshErc8004(): Promise<void> {
+  if (!HAS_REGISTRIES) return; // no ERC-8004 registry on this network
   for (const [addr, listing] of Object.entries(state.agents)) {
     if (!listing.agentId) continue;
     try {
@@ -810,9 +832,21 @@ function json(res: ServerResponse, code: number, body: unknown): void {
   res.end(JSON.stringify(body));
 }
 
+// Cap the body before it can exhaust memory: this loop used to append without a ceiling,
+// so a single large POST was enough to kill the process.
+const MAX_BODY_BYTES = Number(process.env.OCULOPUS_MAX_BODY_BYTES ?? 256 * 1024);
+class PayloadTooLarge extends Error {
+  constructor() { super(`body exceeds ${MAX_BODY_BYTES} bytes`); }
+}
 async function readBody(req: IncomingMessage): Promise<unknown> {
   let raw = "";
-  for await (const chunk of req) raw += chunk;
+  let bytes = 0;
+  for await (const chunk of req) {
+    bytes += Buffer.byteLength(chunk as Buffer);
+    // Stop reading, but do NOT destroy the socket here: the 413 still has to be written.
+    if (bytes > MAX_BODY_BYTES) throw new PayloadTooLarge();
+    raw += chunk;
+  }
   return JSON.parse(raw || "{}");
 }
 
@@ -825,7 +859,13 @@ const server = createServer(async (req, res) => {
       const v = await verifySignedReceipt(signed);
       if (!v.buyerSigned && !v.providerSigned) return json(res, 400, { error: "no valid signature" });
       const hash = receiptHash(signed.receipt);
-      if (!state.receipts[hash]) state.receipts[hash] = { signed, receivedAt: Date.now() };
+      if (!state.receipts[hash]) {
+        if (pendingReceipts >= MAX_PENDING_RECEIPTS) {
+          return json(res, 429, { error: "too many unverified receipts pending — retry once the indexer catches up" });
+        }
+        state.receipts[hash] = { signed, receivedAt: Date.now() };
+        pendingReceipts++;
+      }
       saveState();
       return json(res, 200, { hash, stored: true });
     }
@@ -901,8 +941,14 @@ const server = createServer(async (req, res) => {
       return json(res, 200, { buyers: buyerDirectory() });
     }
     if (req.method === "GET" && url.pathname === "/scores") {
-      const { providers, buyers } = propagate(allRecords());
-      return json(res, 200, { providers: Object.fromEntries(providers), buyers: Object.fromEntries(buyers), generatedAt: Date.now() });
+      if (!scoresCache || Date.now() - scoresCache.at >= SCORES_TTL_MS) {
+        const { providers, buyers } = propagate(allRecords());
+        scoresCache = {
+          at: Date.now(),
+          body: { providers: Object.fromEntries(providers), buyers: Object.fromEntries(buyers), generatedAt: Date.now() },
+        };
+      }
+      return json(res, 200, scoresCache.body);
     }
     if (req.method === "GET" && url.pathname.startsWith("/agents/")) {
       const addr = (url.pathname.split("/")[2] ?? "").toLowerCase();
@@ -928,6 +974,11 @@ const server = createServer(async (req, res) => {
     if (req.method === "GET" && serveStatic(url.pathname, res)) return;
     json(res, 404, { error: "not found" });
   } catch (e) {
+    if (e instanceof PayloadTooLarge) {
+      json(res, 413, { error: (e as Error).message });
+      req.destroy(); // answer first, then drop whatever the caller is still sending
+      return;
+    }
     json(res, 400, { error: (e as Error).message });
   }
 });
@@ -935,7 +986,8 @@ const server = createServer(async (req, res) => {
 const chainId = await pub.getChainId();
 if (chainId !== CHAIN_ID) throw new Error(`RPC chainId ${chainId} != ${CHAIN_ID}`);
 server.listen(PORT, "127.0.0.1", () => {
-  console.log(`Oculopus node → http://localhost:${PORT}   (ERC-8004 identity ${ERC8004.identity}, scanning from block ${state.lastBlock + 1})`);
+  const registries = HAS_REGISTRIES ? `ERC-8004 identity ${ERC8004.identity}` : "no ERC-8004/8183 registries on this network";
+  console.log(`Oculopus node → http://localhost:${PORT}   [${NETWORK} · chain ${CHAIN_ID}] (${registries}, scanning from block ${state.lastBlock + 1})`);
   console.log(`[role] ${ROLE}${INDEXES_JOBS ? "" : " — job indexing OFF (light indexer node)"}`);
 });
 // Pull worker scores independently of the (possibly throttled) identity/scan startup, so

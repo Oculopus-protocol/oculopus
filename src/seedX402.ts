@@ -15,7 +15,7 @@ import {
   keccak256, toHex, parseUnits, type Hex,
 } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
-import { arcTestnet, CHAIN_ID, CONTRACTS, RPC_URLS, USDC_DECIMALS } from "./config.js";
+import { arcChain, CHAIN_ID, CONTRACTS, RPC_URLS, USDC_DECIMALS } from "./config.js";
 import { erc20Abi, memoAbi, multicall3FromAbi } from "./abi.js";
 import { encodeMemoData, MEMO_KIND } from "./receipt.js";
 import { signReceiptHash } from "./x402Client.js";
@@ -36,9 +36,9 @@ interface Wallets { providers: SeedWallet[]; buyers: Hex[]; }
 const wallets = JSON.parse(readFileSync("data/seed-wallets.json", "utf8")) as Wallets;
 
 const transport = () => fallback(RPC_URLS.map((u) => http(u, { retryCount: 5, retryDelay: 1500 })));
-const pub = createPublicClient({ chain: arcTestnet, transport: transport() });
+const pub = createPublicClient({ chain: arcChain, transport: transport() });
 const funder = privateKeyToAccount(PK);
-const funderWallet = createWalletClient({ account: funder, chain: arcTestnet, transport: transport() });
+const funderWallet = createWalletClient({ account: funder, chain: arcChain, transport: transport() });
 const rnd = <T>(a: T[]): T => a[Math.floor(Math.random() * a.length)]!;
 
 interface Pending { receipt: X402Receipt; hash: Hex; providerSig: Hex; buyerSig: Hex; }

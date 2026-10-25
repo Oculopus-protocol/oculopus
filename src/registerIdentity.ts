@@ -10,7 +10,7 @@ import "dotenv/config";
 import { readFileSync, writeFileSync, mkdirSync, existsSync } from "node:fs";
 import { createPublicClient, createWalletClient, fallback, http, parseEventLogs, type Hex } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
-import { arcTestnet, CHAIN_ID, RPC_URLS } from "./config.js";
+import { arcChain, CHAIN_ID, RPC_URLS } from "./config.js";
 import { ERC8004, identityAbi } from "./erc8004.js";
 
 // Deliberately NOT OCULOPUS_STATE_DIR: that points at a fresh per-run directory in
@@ -28,7 +28,7 @@ export interface Identity {
 }
 
 const transport = () => fallback(RPC_URLS.map((u) => http(u, { retryCount: 4, retryDelay: 1500 })));
-const pub = createPublicClient({ chain: arcTestnet, transport: transport() });
+const pub = createPublicClient({ chain: arcChain, transport: transport() });
 
 export function loadIdentities(): Identity[] {
   return existsSync(IDENTITIES_PATH) ? (JSON.parse(readFileSync(IDENTITIES_PATH, "utf8")) as Identity[]) : [];
@@ -53,7 +53,7 @@ export async function ensureIdentity(privateKey: Hex, agentURI: string, endpoint
     console.warn(`[identity] ${account.address} no longer owns agentId ${existing.agentId} — re-registering`);
   }
 
-  const wallet = createWalletClient({ account, chain: arcTestnet, transport: transport() });
+  const wallet = createWalletClient({ account, chain: arcChain, transport: transport() });
   const hash = await wallet.writeContract({
     address: ERC8004.identity,
     abi: identityAbi,

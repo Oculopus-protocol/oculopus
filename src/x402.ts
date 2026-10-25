@@ -25,9 +25,28 @@
 import { keccak256, toHex, type Address, type Hex } from "viem";
 import { canonicalize } from "./receipt.js";
 
-/** Arc Testnet in CAIP-2, the form Circle's middleware expects. */
+/** Arc in CAIP-2, the form Circle's middleware expects. */
 export const ARC_TESTNET_CAIP2 = "eip155:5042002";
+export const ARC_MAINNET_CAIP2 = "eip155:5042";
 export const GATEWAY_TESTNET_FACILITATOR = "https://gateway-api-testnet.circle.com";
+export const GATEWAY_MAINNET_FACILITATOR = "https://gateway-api.circle.com";
+
+/**
+ * Chain name Circle's Gateway client expects — it resolves these against viem's chain
+ * registry, which carries `arc` (5042) and `arcTestnet` (5042002).
+ */
+export type GatewayChain = "arc" | "arcTestnet";
+
+/** Everything the x402 rail needs to talk to one Arc network. */
+export function gatewayConfig(network: string): {
+  chain: GatewayChain;
+  caip2: string;
+  facilitatorUrl: string;
+} {
+  return network === "mainnet"
+    ? { chain: "arc", caip2: ARC_MAINNET_CAIP2, facilitatorUrl: GATEWAY_MAINNET_FACILITATOR }
+    : { chain: "arcTestnet", caip2: ARC_TESTNET_CAIP2, facilitatorUrl: GATEWAY_TESTNET_FACILITATOR };
+}
 
 /**
  * The subset of Circle's `SettleResultContext` that Oculopus reads.

@@ -16,7 +16,7 @@ import {
   type Address,
   type Hex,
 } from "viem";
-import { arcTestnet, CONTRACTS, RPC_URLS } from "./config.js";
+import { arcChain, CONTRACTS, RPC_URLS } from "./config.js";
 import { memoAbi } from "./abi.js";
 import { canonicalize } from "./receipt.js";
 import { verifyMerkleProof, x402ReceiptHash, type X402Receipt } from "./x402.js";
@@ -148,7 +148,7 @@ export async function verifyAnchored(
 ): Promise<VerifiedAnchor> {
   if (!verifyMerkleProof(receiptHash, proof, root)) return { anchored: false };
   const pub = createPublicClient({
-    chain: arcTestnet,
+    chain: arcChain,
     transport: fallback(RPC_URLS.map((u) => http(u, { retryCount: 4, retryDelay: 1500 }))),
   });
   const head = await pub.getBlockNumber();

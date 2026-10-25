@@ -6,12 +6,14 @@
   "type": "module",
   "scripts": {
     "typecheck": "tsc --noEmit",
-    "test": "tsx --test src/receipt.test.ts src/scorer.test.ts src/x402.test.ts src/agentCard.test.ts src/store.test.ts src/proofReceipt.test.ts",
+    "test": "tsx --test src/receipt.test.ts src/scorer.test.ts src/x402.test.ts src/agentCard.test.ts src/store.test.ts src/proofReceipt.test.ts src/abuse.test.ts src/api.test.ts",
     "verify:memo": "tsx src/verifyMemo.ts",
     "node": "tsx src/node.ts",
     "node:indexer": "cross-env OCULOPUS_ROLE=indexer NODE_PORT=8790 OCULOPUS_STATE_DIR=data-indexer tsx src/node.ts",
     "node:worker": "cross-env OCULOPUS_ROLE=worker NODE_PORT=8792 OCULOPUS_STATE_DIR=data-worker tsx src/node.ts",
+    "node:mainnet": "cross-env OCULOPUS_NETWORK=mainnet NODE_PORT=8791 OCULOPUS_STATE_DIR=data-mainnet tsx src/node.ts",
     "demo": "tsx src/demo.ts",
+    "demo:mainnet": "cross-env OCULOPUS_NETWORK=mainnet NODE_PORT=8791 tsx src/demo.ts",
     "rescore": "tsx src/rescore.ts",
     "register:identity": "tsx src/registerIdentity.ts",
     "seed": "tsx src/seed.ts",
@@ -21,7 +23,8 @@
     "oracle": "tsx src/oracle.ts",
     "agent:creditcheck": "tsx src/agents/creditCheck.ts",
     "key:create": "tsx src/oracleKey.ts",
-    "seed:x402": "tsx src/seedX402.ts"
+    "seed:x402": "tsx src/seedX402.ts",
+    "tiers": "tsx src/tierCalibration.ts"
   },
   "license": "MIT",
   "dependencies": {

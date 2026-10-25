@@ -23,7 +23,7 @@ import {
   type Hex,
 } from "viem";
 import { privateKeyToAccount, generatePrivateKey } from "viem/accounts";
-import { arcTestnet, CHAIN_ID, CONTRACTS, RPC_URLS, USDC_DECIMALS } from "./config.js";
+import { arcChain, CHAIN_ID, CONTRACTS, RPC_URLS, USDC_DECIMALS } from "./config.js";
 import { erc20Abi } from "./abi.js";
 import { startProvider, type ProviderHandle } from "./agents/provider.js";
 import { runRound, type BuyerOptions } from "./agents/buyer.js";
@@ -40,8 +40,8 @@ if (!pk) throw new Error("BUYER_PRIVATE_KEY missing in .env");
 const buyer = privateKeyToAccount(pk);
 
 const transport = () => fallback(RPC_URLS.map((u) => http(u, { retryCount: 4, retryDelay: 1500 })));
-const pub = createPublicClient({ chain: arcTestnet, transport: transport() });
-const buyerWallet = createWalletClient({ account: buyer, chain: arcTestnet, transport: transport() });
+const pub = createPublicClient({ chain: arcChain, transport: transport() });
+const buyerWallet = createWalletClient({ account: buyer, chain: arcChain, transport: transport() });
 
 let pass = 0;
 let fail = 0;

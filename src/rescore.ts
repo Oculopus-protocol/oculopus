@@ -16,12 +16,12 @@
 // own indexer, which reads NewFeedback events and has block times.
 import { pathToFileURL } from "node:url";
 import { createPublicClient, fallback, http } from "viem";
-import { arcTestnet, RPC_URLS } from "./config.js";
+import { arcChain, RPC_URLS } from "./config.js";
 import { ERC8004, reputationAbi, normaliseRating } from "./erc8004.js";
 import { scoreProvider, type ReceiptRecord } from "./scorer.js";
 
 const pub = createPublicClient({
-  chain: arcTestnet,
+  chain: arcChain,
   transport: fallback(RPC_URLS.map((u) => http(u, { retryCount: 4, retryDelay: 1500 }))),
 });
 

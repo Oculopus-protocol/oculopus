@@ -18,7 +18,7 @@ import {
   keccak256, toHex, parseUnits, formatUnits, type Hex,
 } from "viem";
 import { privateKeyToAccount, generatePrivateKey } from "viem/accounts";
-import { arcTestnet, CHAIN_ID, CONTRACTS, RPC_URLS, USDC_DECIMALS } from "./config.js";
+import { arcChain, CHAIN_ID, CONTRACTS, RPC_URLS, USDC_DECIMALS } from "./config.js";
 import { erc20Abi, memoAbi, multicall3FromAbi } from "./abi.js";
 import {
   receiptHash, signReceipt, encodeMemoData, MEMO_KIND, type Receipt, type SignedReceipt,
@@ -36,9 +36,9 @@ const PK = process.env.BUYER_PRIVATE_KEY as Hex | undefined;
 if (!PK) throw new Error("BUYER_PRIVATE_KEY missing in .env");
 
 const transport = () => fallback(RPC_URLS.map((u) => http(u, { retryCount: 5, retryDelay: 1500 })));
-const pub = createPublicClient({ chain: arcTestnet, transport: transport() });
+const pub = createPublicClient({ chain: arcChain, transport: transport() });
 const funder = privateKeyToAccount(PK);
-const funderWallet = createWalletClient({ account: funder, chain: arcTestnet, transport: transport() });
+const funderWallet = createWalletClient({ account: funder, chain: arcChain, transport: transport() });
 
 const ADJ = ["atlas", "nimbus", "quartz", "vega", "orion", "helix", "corvus", "lyra", "pyxis", "mensa", "cetus", "draco", "aquila", "carina", "dorado", "fornax", "hydra", "indus", "lupus", "norma", "octans", "pavo", "sculptor", "tucana", "volans", "crux", "aries", "cygnus", "phoenix", "tauri"];
 const SUF = ["embed", "llm", "rerank", "ocr", "scrape", "speech", "vision", "index", "batch", "core"];
@@ -107,7 +107,7 @@ async function anchorReceipt(buyerKey: Hex, providerKey: Hex, provider: Identity
   const inner = encodeFunctionData({ abi: erc20Abi, functionName: "transfer", args: [provider.address as Hex, parseUnits(PRICE, USDC_DECIMALS)] });
   const memoData = encodeMemoData({ kind: MEMO_KIND.receipt, outcome, serviceTag: provider.serviceTag, receiptHash: hash });
   const memoCall = encodeFunctionData({ abi: memoAbi, functionName: "memo", args: [CONTRACTS.usdc, inner, hash, memoData] });
-  const buyerWallet = createWalletClient({ account: buyer, chain: arcTestnet, transport: transport() });
+  const buyerWallet = createWalletClient({ account: buyer, chain: arcChain, transport: transport() });
   const tx = await buyerWallet.writeContract({
     address: CONTRACTS.multicall3From, abi: multicall3FromAbi, functionName: "aggregate3",
     args: [[{ target: CONTRACTS.memo as Hex, allowFailure: false, callData: memoCall }]],

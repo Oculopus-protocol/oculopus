@@ -24,7 +24,7 @@ import {
   type Hex,
 } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
-import { arcTestnet, CHAIN_ID, CONTRACTS, USDC_DECIMALS, RPC_URLS } from "./config.js";
+import { arcChain, CHAIN_ID, CONTRACTS, USDC_DECIMALS, RPC_URLS } from "./config.js";
 import { memoAbi, erc20Abi } from "./abi.js";
 
 const pk = process.env.BUYER_PRIVATE_KEY as Hex | undefined;
@@ -34,8 +34,8 @@ if (!pk || !recipient) throw new Error("BUYER_PRIVATE_KEY / RECIPIENT missing in
 // Fallback across both public RPCs + generous retry — the official one rate-limits bursts.
 const transport = () => fallback(RPC_URLS.map((u) => http(u, { retryCount: 4, retryDelay: 1500 })));
 const buyer = privateKeyToAccount(pk);
-const pub = createPublicClient({ chain: arcTestnet, transport: transport() });
-const wallet = createWalletClient({ account: buyer, chain: arcTestnet, transport: transport() });
+const pub = createPublicClient({ chain: arcChain, transport: transport() });
+const wallet = createWalletClient({ account: buyer, chain: arcChain, transport: transport() });
 
 let pass = 0;
 let fail = 0;

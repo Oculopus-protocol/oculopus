@@ -18,7 +18,7 @@ import {
   type Account,
   type Hex,
 } from "viem";
-import { arcTestnet, CONTRACTS, RPC_URLS } from "../config.js";
+import { arcChain, CONTRACTS, RPC_URLS } from "../config.js";
 import { memoAbi, erc20Abi, multicall3FromAbi } from "../abi.js";
 import {
   canonicalize,
@@ -85,8 +85,8 @@ async function post(url: string, body: unknown, timeoutMs = 8000): Promise<{ ok:
 // ε-exploration of a runner-up — how a real agent keeps honest scores on backups).
 export async function runRound(opts: BuyerOptions, jobInput: string, pick = 0): Promise<RoundResult> {
   const { account, nodeUrl, serviceTag, taskRef } = opts;
-  const pub = createPublicClient({ chain: arcTestnet, transport: transport() });
-  const wallet = createWalletClient({ account, chain: arcTestnet, transport: transport() });
+  const pub = createPublicClient({ chain: arcChain, transport: transport() });
+  const wallet = createWalletClient({ account, chain: arcChain, transport: transport() });
 
   // 1. reputation-driven selection
   const dirRes = await fetch(`${nodeUrl}/directory?serviceTag=${serviceTag}`);
@@ -233,8 +233,8 @@ function settlementCalls(memoCall: Hex, feedbackCall?: Hex): Call3[] {
  * the only thing given up is settlement latency.
  */
 export async function settleBatch(account: Account, calls: Call3[]): Promise<Hex> {
-  const wallet = createWalletClient({ account, chain: arcTestnet, transport: transport() });
-  const pub = createPublicClient({ chain: arcTestnet, transport: transport() });
+  const wallet = createWalletClient({ account, chain: arcChain, transport: transport() });
+  const pub = createPublicClient({ chain: arcChain, transport: transport() });
   const tx = await wallet.writeContract({
     address: CONTRACTS.multicall3From,
     abi: multicall3FromAbi,
